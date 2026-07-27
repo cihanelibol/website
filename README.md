@@ -1,37 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Gri Akvaryum & Balık Galerisi
 
-## Getting Started
+griakvaryum.com — Site Altyapı Rehberi
+Sitenin üç ayağı vardır: kod, veritabanı ve yayın. Her biri kendi alanında uzman bir serviste durur ve üçü de tek hesapla yönetilir.
 
-First, run the development server:
+Üç servisteki giriş hesabı:
+griakvaryum@gmail.com
+GitHub
+Kod
+Sitenin bütün kaynak kodu burada saklanır. Her değişikliğin tarihi ve içeriği kayıtlıdır; gerekirse herhangi bir eski sürüme geri dönülebilir. Kodun güvenli yedeği burasıdır.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Depo: github.com/griakvaryu/website
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Neon
+Veritabanı
+Sitede oluşan canlı veriler — üye kayıtları ve ürün yorumları — Neon'daki Postgres veritabanında tutulur. Veriler Avrupa'da (Frankfurt) barınır; üye parolaları düz metin olarak değil, geri döndürülemez şifreleme ile saklanır.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Panel: console.neon.tech
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Vercel
+Yayın · Hosting
+Ziyaretçilerin gördüğü site Vercel üzerinde çalışır. Vercel, GitHub'daki koda bağlıdır: yeni kod gönderildiğinde otomatik olarak derler ve dakikalar içinde yayına alır — elle yükleme yapılmaz. Bir sorun olursa tek tıkla bir önceki yayına dönülebilir.
 
-## Learn More
+Panel: vercel.com  ·  Alan adı: griakvaryum.com
 
-To learn more about Next.js, take a look at the following resources:
+Otomatik yayın: GitHub'a push → yeni sürüm
+Sitede yapılan her kod değişikliği GitHub'a gönderildiğinde (push) süreç kendiliğinden işler — elle hiçbir şey yapılmaz:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Değişiklik GitHub'daki main dalına push'lanır.
+Vercel bunu anında algılar ve yeni bir sürüm (deployment) otomatik tetiklenir.
+Vercel kodu derler; hata yoksa dakikalar içinde griakvaryum.com'da yayına alır.
+Her push, Vercel panelinde tarihli ayrı bir sürüm olarak listelenir — hangi değişikliğin ne zaman yayına girdiği her zaman görülebilir.
+Derleme hata verirse yayın güncellenmez; site son çalışan sürümde kalır, ziyaretçi kesinti görmez.
+Yani "siteyi güncelleme" işlemi = GitHub'a push. Ayrı bir yükleme, FTP veya panel işlemi yoktur.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# website
+Parçalar nasıl birlikte çalışır?
+Kod değişikliği ──▶ GitHub ──▶ Vercel otomatik derler ve yayınlar
+                                   │
+Ziyaretçi ──▶ griakvaryum.com ──▶ Vercel'deki site
+                                   ├── Üyeler ve yorumlar  ⇄  Neon veritabanı
+                                   └── Ürünler ve fiyatlar ⇄  EasyTrade Katalog
+Sık sorulanlar
+Site nasıl güncellenir?
+Kod değişikliği GitHub'a gönderilir; Vercel bunu otomatik yayınlar. Başka işlem gerekmez.
+Ürünler ve fiyatlar nereden değişir?
+EasyTrade Dijital Katalog panelinden. Site, katalogdan canlı okur — ürün bilgisi veritabanında ayrıca tutulmaz.
+Veriler yedekli mi?
+Kodun tam geçmişi GitHub'dadır. Neon, veritabanının geçmiş anlık görüntülerini tutar; gerekirse eski bir ana dönülebilir.
+Bir şey ters giderse?
+Vercel panelinden tek tıkla bir önceki sürüme geri dönülür; site kesintisi yaşanmaz.
+Kimin erişimi var?
+Üç servis de griakvaryum@gmail.com hesabına bağlıdır. Bu hesabın güvenliği (güçlü parola + iki adımlı doğrulama) bütün sistemin güvenliği demektir.
