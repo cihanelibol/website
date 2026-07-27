@@ -1,5 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import GoogleButton from "@/components/GoogleButton";
+import { googleConfigured } from "@/lib/auth";
 import KayitForm from "./KayitForm";
 
 export const metadata = {
@@ -19,6 +21,7 @@ export default function KayitPage() {
           <p className="mb-6 text-sm text-muted">
             Ücretsiz hesap oluşturun. Üyelik olmadan da sipariş verebilirsiniz.
           </p>
+          {googleConfigured() && <GoogleButton />}
           <KayitForm />
         </div>
       </main>

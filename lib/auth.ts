@@ -9,7 +9,9 @@ export type User = {
   id: string;
   name: string;
   email: string;
-  passwordHash: string; // salt:hash (hex)
+  passwordHash: string; // salt:hash (hex) — Google hesaplarında boş
+  /** Google ile açılan hesaplarda "google" */
+  provider?: "google";
   /** Cep telefonu (05XXXXXXXXX) */
   phone?: string;
   createdAt: string;
@@ -28,6 +30,20 @@ const SESSION_DAYS = 30;
 
 function secret(): string {
   return process.env.SESSION_SECRET ?? "griakvaryum-dev-secret-degistir";
+}
+
+/* ---------------- Roller ---------------- */
+// ADMIN_EMAILS env değişkeni (virgülle ayrılmış) yönetici e-postalarını belirler.
+// Bu adresler dışındaki tüm üyeler normal müşteridir.
+
+const DEFAULT_ADMIN_EMAILS = "cihanelibol47@gmail.com,griakvaryum@gmail.com";
+
+export function isAdminEmail(email: string): boolean {
+  const admins = (process.env.ADMIN_EMAILS ?? DEFAULT_ADMIN_EMAILS)
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  return admins.includes(email.trim().toLowerCase());
 }
 
 function hashPassword(password: string): string {
@@ -87,10 +103,51 @@ export async function createUser(input: {
 export async function verifyLogin(
   email: string,
   password: string
-): Promise<User | undefined> {
+): Promise<User | undefined | { error: string }> {
   const user = await findUserByEmail(email);
   if (!user) return undefined;
+  if (user.provider === "google" || !user.passwordHash) {
+    return {
+      error:
+        "Bu hesap Google ile açılmış. Lütfen 'Google ile devam et' düğmesini kullanın.",
+    };
+  }
   return verifyPassword(password, user.passwordHash) ? user : undefined;
+}
+
+/** Google ile giriş: e-posta varsa mevcut hesabı döndürür, yoksa hesap açar */
+export async function findOrCreateGoogleUser(input: {
+  email: string;
+  name: string;
+}): Promise<{ user: User; created: boolean }> {
+  const email = input.email.trim().toLowerCase();
+  const users = await readJson<User[]>(FILE, []);
+  const existing = users.find((u) => u.email === email);
+  if (existing) return { user: existing, created: false };
+
+  const now = new Date().toISOString();
+  const user: User = {
+    id: randomBytes(12).toString("hex"),
+    name: input.name.trim().slice(0, 60) || email.split("@")[0],
+    email,
+    passwordHash: "",
+    provider: "google",
+    createdAt: now,
+    // Google ile devam eden kullanıcı, düğme altındaki bilgilendirmeyle
+    // sözleşmeleri kabul etmiş sayılır (ispat kaydı)
+    legalAcceptedAt: now,
+    marketingConsent: false,
+    marketingConsentAt: null,
+  };
+  users.push(user);
+  await writeJson(FILE, users);
+  return { user, created: true };
+}
+
+export function googleConfigured(): boolean {
+  return Boolean(
+    process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+  );
 }
 
 export async function getUserById(id: string): Promise<User | undefined> {
@@ -159,6 +216,9 @@ export function parseSessionToken(token: string): SessionPayload | undefined {
   }
 }
 
+// Yönetim bağlantısını arayüzde göstermek için (güvenlik sunucuda ayrıca doğrulanır)
+export const ROLE_COOKIE = "ga_role";
+
 export async function setSessionCookies(user: User): Promise<void> {
   const store = await cookies();
   const maxAge = SESSION_DAYS * 86400;
@@ -174,12 +234,26 @@ export async function setSessionCookies(user: User): Promise<void> {
     maxAge,
     path: "/",
   });
+  store.set(ROLE_COOKIE, isAdminEmail(user.email) ? "admin" : "musteri", {
+    sameSite: "lax",
+    maxAge,
+    path: "/",
+  });
 }
 
 export async function clearSessionCookies(): Promise<void> {
   const store = await cookies();
   store.delete(SESSION_COOKIE);
   store.delete(DISPLAY_COOKIE);
+  store.delete(ROLE_COOKIE);
+}
+
+/** Oturumdaki kullanıcı yönetici mi? (kayıt üzerinden sunucuda doğrulanır) */
+export async function getAdminUser(): Promise<User | undefined> {
+  const session = await getSessionUser();
+  if (!session) return undefined;
+  const user = await getUserById(session.uid);
+  return user && isAdminEmail(user.email) ? user : undefined;
 }
 
 export async function getSessionUser(): Promise<

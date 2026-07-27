@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { openSiteSearch, SearchIcon } from "./SiteSearch";
 
 const bubbles = [
@@ -14,6 +14,71 @@ const bubbles = [
   { left: "72%", size: 9, duration: 15, delay: 6 },
   { left: "85%", size: 14, duration: 12, delay: 0.8 },
   { left: "94%", size: 11, duration: 9.5, delay: 4 },
+];
+
+// Google Maps'ten alınan GERÇEK 5 yıldızlı yorumlar (27 Temmuz 2026).
+// photo: Google profil fotoğrafı; yüklenemezse isimden baş harfli avatar üretilir.
+const googleReviews: { name: string; text: string; photo?: string }[] = [
+  {
+    name: "Arif Eraslan",
+    text: "Kalitenin tek adresi diyorum mutlak gidin mutlaka tavsiye edin mutlaka uğrayın kaçırmayın derim. Bu zamanda böyle esnaflık böyle nezaket ilgi alaka muhteşem tek kelime ile muhteşem bir yer",
+    photo:
+      "/reviews/arif-eraslan.png",
+  },
+  {
+    name: "Ziya Cakilci",
+    text: "Ailecek akvaryum almaya gittik çok memnun kaldık her konuda yakından ilgilendiler özellikle küçük kızım çok memnun kaldı akvaryum ve balıkları alırken çok yardımcı oldular. Gönül rahatlığı ile alışveriş yapabilirsiniz.",
+    photo:
+      "/reviews/ziya-cakilci.png",
+  },
+  {
+    name: "Fūsun Akgün",
+    text: "Harika esnaflar! Esnaf gibi esnaflar, ilgilenip dinleyip anlayıp kafa yoran harika insanlar. Elinize bir şey verip göndermiyorlar, satmak için satmıyorlar; bu olmaz diyebiliyorlar…",
+    photo:
+      "/reviews/fusun-akgun.png",
+  },
+  {
+    name: "Yiğithan SOLGUN",
+    text: "Buraya bayılıyorum bir sürü balık türleri var ve hepsi gayet sağlıklı ve temiz sular içinde. Özellikle çalışan ablalar güler yüzlü ve çok bilgililer. Kesinlikle gelmenizi tavsiye ederim.",
+    photo:
+      "/reviews/yigithan-solgun.png",
+  },
+  {
+    name: "Gülbahar Akyürek",
+    text: "Çok güzel ve kalite ürünleri ile güzel bir işletme çalışan ablamız çok yardımcı oldu herkese tavsiye ederiz",
+    photo:
+      "/reviews/gulbahar-akyurek.png",
+  },
+  {
+    name: "Zafer Menküç",
+    text: "Güler yüzlü samimi bir yer. Fiyatlar çok uygun. Yardımcı oluyorlar. Her türlü balık akvaryum aksesuar mevcut.",
+    photo:
+      "/reviews/zafer-menkuc.png",
+  },
+  {
+    name: "H. Murat Ayırga",
+    text: "Kaliteli hizmet, güler yüz, müşteri memnuniyetini önemseyen bir bakış açısı. Teşekkürler",
+    photo:
+      "/reviews/murat-ayirga.png",
+  },
+  {
+    name: "Samet Kartal",
+    text: "Güzel memnunum, çeşit çok, fiyatlar gayet uygun. Müşteri ile baya iyi davranıyorlar, gayet uygun iş yeri.",
+    photo:
+      "/reviews/samet-kartal.png",
+  },
+];
+
+// Avatar renkleri: Google'ın profil harfi renklerine benzer, isme göre sabit
+const avatarGradients = [
+  "from-cyan-500 to-blue-600",
+  "from-rose-500 to-pink-600",
+  "from-amber-500 to-orange-600",
+  "from-emerald-500 to-teal-600",
+  "from-violet-500 to-purple-600",
+  "from-sky-500 to-indigo-600",
+  "from-fuchsia-500 to-pink-600",
+  "from-teal-500 to-cyan-600",
 ];
 
 export type HeroTopProduct = {
@@ -28,7 +93,6 @@ export default function Hero({
   totalProducts,
   totalCategories,
   storePhotos = [],
-  topProducts = [],
 }: {
   totalProducts?: number;
   totalCategories?: number;
@@ -36,6 +100,19 @@ export default function Hero({
   topProducts?: HeroTopProduct[];
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Google yorumları: her 4 sn'de bir sonrakine geç, üzerine gelince dur
+  const [reviewIndex, setReviewIndex] = useState(0);
+  const [reviewsPaused, setReviewsPaused] = useState(false);
+
+  useEffect(() => {
+    if (reviewsPaused) return;
+    const id = setInterval(
+      () => setReviewIndex((i) => (i + 1) % googleReviews.length),
+      4000
+    );
+    return () => clearInterval(id);
+  }, [reviewsPaused]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -54,7 +131,7 @@ export default function Hero({
       {/* Arka plan videosu */}
       <video
         ref={videoRef}
-        className="absolute inset-0 h-full w-full object-cover"
+        className="absolute inset-0 h-full w-full object-cover saturate-[1.25] contrast-[1.08]"
         src="/videos/hero.mp4"
         autoPlay
         muted
@@ -63,10 +140,10 @@ export default function Hero({
         preload="metadata"
       />
 
-      {/* Transparan katmanlar - videoyu arkaya gömer */}
-      <div className="absolute inset-0 bg-[#04101c]/60" />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#04101c]/80 via-transparent to-[#04101c]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(4,16,28,0.7)_100%)]" />
+      {/* Çok hafif, düz katman - genel netlik tabanı */}
+      <div className="absolute inset-0 bg-background/8" />
+      {/* Ortada (yazı bloğunun arkasında) en yoğun, kenarlara doğru azalan katman */}
+      <div className="hero-center-scrim absolute inset-0" />
 
       {/* Yükselen baloncuklar */}
       {bubbles.map((b, i) => (
@@ -109,7 +186,7 @@ export default function Hero({
         <div className="grid flex-1 grid-cols-1 content-center items-center gap-10 py-10 lg:grid-cols-[1.32fr_0.68fr] lg:gap-6">
         {/* SOL - başlık ve aksiyonlar */}
         <div className="min-w-0 text-left lg:-ml-3 lg:self-start">
-          <h1 className="animate-fade-up delay-100 font-display text-5xl font-bold leading-[1.04] tracking-[-0.03em] sm:text-6xl lg:text-7xl xl:text-[6rem]">
+          <h1 className="text-halo animate-fade-up delay-100 font-display text-5xl font-bold leading-[1.04] tracking-[-0.03em] sm:text-6xl lg:text-7xl xl:text-[6rem]">
             Sualtı Dünyasının
             <br />
             {/* pl/pr: el yazısı fontun taşan harfleri background-clip: text dışında kalıp kesilmesin */}
@@ -118,7 +195,7 @@ export default function Hero({
             </span>
           </h1>
 
-          <p className="animate-fade-up delay-200 mt-6 max-w-xl text-base leading-relaxed text-muted sm:text-lg">
+          <p className="text-halo animate-fade-up delay-200 mt-6 max-w-xl text-base font-medium leading-relaxed text-foreground/90 sm:text-lg">
             Tropikal balıklardan profesyonel akvaryum sistemlerine, premium
             yemlerden canlı bitkilere - aradığınız her şey Gri Akvaryum&apos;da.
           </p>
@@ -154,7 +231,7 @@ export default function Hero({
                 <div className="font-display text-3xl font-bold text-gradient sm:text-4xl lg:text-[2.75rem]">
                   {stat.value}
                 </div>
-                <div className="mt-1 text-sm text-muted sm:text-base">
+                <div className="text-halo mt-1 text-sm font-medium text-foreground/85 sm:text-base">
                   {stat.label}
                 </div>
               </div>
@@ -199,52 +276,85 @@ export default function Hero({
             </ul>
           </Link>
 
-          {/* Çok satanlar mini kartı */}
-          {topProducts.length > 0 && (
-            <div className="glass animate-fade-up delay-400 rounded-3xl p-5 sm:p-6">
-              <div className="mb-4 flex items-center justify-between">
-                <div className="font-display text-sm font-bold uppercase tracking-wider">
-                  Öne Çıkan Ürünler
-                </div>
-                <Link
-                  href="/urunler"
-                  className="text-xs font-medium text-cyan-300 hover:text-cyan-200"
-                >
-                  Tümü →
-                </Link>
+          {/* Google yorumları - mağaza fotoğraflarından bir tık yavaş, sağdan sola kayar */}
+          <div className="glass animate-fade-up delay-400 rounded-3xl p-5 sm:p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="font-display text-sm font-bold uppercase tracking-wider">
+                Google Yorumları
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                {topProducts.slice(0, 3).map((p) => (
-                  <Link
-                    key={p.id}
-                    href="/urunler"
-                    className="group rounded-2xl bg-cyan-400/5 p-2.5 transition-colors hover:bg-cyan-400/15"
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=Gri+Akvaryum+Fatih+%C4%B0stanbul"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-medium text-cyan-300 hover:text-cyan-200"
+              >
+                ⭐ 4,8 · Tümü →
+              </a>
+            </div>
+            <div
+              onMouseEnter={() => setReviewsPaused(true)}
+              onMouseLeave={() => setReviewsPaused(false)}
+            >
+              {/* key değişince kart yeniden kurulup fade-up ile girer */}
+              <figure
+                key={reviewIndex}
+                className="animate-fade-up min-h-[17rem] rounded-2xl bg-cyan-400/5 p-5"
+              >
+                <figcaption className="flex items-center gap-3">
+                  {/* Gerçek profil fotoğrafı varsa o, yoksa baş harfli avatar */}
+                  {googleReviews[reviewIndex].photo ? (
+                    <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full">
+                      <Image
+                        src={googleReviews[reviewIndex].photo}
+                        alt={`${googleReviews[reviewIndex].name} profil fotoğrafı`}
+                        fill
+                        sizes="40px"
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </span>
+                  ) : (
+                    <span
+                      aria-hidden
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-base font-bold text-white ${
+                        avatarGradients[reviewIndex % avatarGradients.length]
+                      }`}
+                    >
+                      {googleReviews[reviewIndex].name.charAt(0)}
+                    </span>
+                  )}
+                  <span className="min-w-0 flex-1 truncate text-lg font-semibold">
+                    {googleReviews[reviewIndex].name}
+                  </span>
+                  <span
+                    className="shrink-0 text-base text-amber-400"
+                    aria-label="5 üzerinden 5 yıldız"
                   >
-                    <div className="relative flex h-16 items-center justify-center overflow-hidden rounded-xl bg-white/90 sm:h-20">
-                      {p.image ? (
-                        <Image
-                          src={p.image}
-                          alt={p.name}
-                          fill
-                          sizes="120px"
-                          className="object-contain p-1.5 transition-transform group-hover:scale-110"
-                          unoptimized
-                        />
-                      ) : (
-                        <span className="text-3xl">{p.emoji}</span>
-                      )}
-                    </div>
-                    <div className="mt-2 line-clamp-2 text-[11px] leading-tight text-muted">
-                      {p.name}
-                    </div>
-                    <div className="mt-1 text-xs font-bold text-gradient">
-                      {p.price}
-                    </div>
-                  </Link>
+                    ★★★★★
+                  </span>
+                </figcaption>
+                <blockquote className="mt-3 text-lg leading-relaxed text-muted">
+                  {googleReviews[reviewIndex].text}
+                </blockquote>
+              </figure>
+
+              {/* Yorum noktaları - tıklayınca o yoruma atlar */}
+              <div className="mt-4 flex justify-center gap-1.5">
+                {googleReviews.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setReviewIndex(i)}
+                    aria-label={`${i + 1}. yorumu göster`}
+                    className={`h-1.5 rounded-full transition-all ${
+                      i === reviewIndex
+                        ? "w-5 bg-cyan-400"
+                        : "w-1.5 bg-cyan-400/30 hover:bg-cyan-400/60"
+                    }`}
+                  />
                 ))}
               </div>
             </div>
-          )}
+          </div>
 
           {/* Mağazamız - kare fotoğraflar sağdan sola kesintisiz kayar */}
           {storePhotos.length > 0 && (

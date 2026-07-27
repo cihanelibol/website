@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#04101c",
+  themeColor: "#f2f7fa",
 };
 
 export default function RootLayout({
@@ -36,7 +36,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr" className={`h-full antialiased ${script.variable}`}>
+    <html
+      lang="tr"
+      data-theme="light"
+      suppressHydrationWarning
+      className={`h-full antialiased ${script.variable}`}
+    >
+      <head>
+        {/* Kaydedilmiş temayı ilk boyamadan önce uygula (FOUC önlemi) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">
         <CartProvider>{children}</CartProvider>
       </body>

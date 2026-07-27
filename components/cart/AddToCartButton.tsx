@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useCart } from "./CartProvider";
+import { logActivity } from "@/components/ActivityPing";
 import type { EtProduct } from "@/lib/easytrade";
 import { primaryImage, productEmoji } from "@/lib/easytrade";
 
@@ -20,6 +21,12 @@ export function AddToCartButton({ product }: { product: EtProduct }) {
       emoji: productEmoji(product),
       unit: product.unit.label,
       maxStock: product.stock_quantity,
+    });
+    logActivity({
+      type: "sepete-ekleme",
+      productId: product.id,
+      productName: product.name,
+      qty: 1,
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
@@ -56,6 +63,12 @@ export function AddToCartDetail({ product }: { product: EtProduct }) {
       },
       qty
     );
+    logActivity({
+      type: "sepete-ekleme",
+      productId: product.id,
+      productName: product.name,
+      qty,
+    });
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
   };

@@ -39,7 +39,7 @@ export default function CartDrawer({
     >
       {/* Karartılmış arka plan */}
       <div
-        className={`absolute inset-0 bg-[#04101c]/60 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`absolute inset-0 bg-background/60 backdrop-blur-sm transition-opacity duration-300 ${
           open ? "opacity-100" : "opacity-0"
         }`}
         onClick={onClose}

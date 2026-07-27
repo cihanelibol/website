@@ -1,6 +1,9 @@
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { getSessionUser, getUserById } from "@/lib/auth";
+import { getAddresses, type Address } from "@/lib/addresses";
+import { paymentConfigured } from "@/lib/payments";
 import SepetClient from "./SepetClient";
 
 export const metadata = {
@@ -8,7 +11,22 @@ export const metadata = {
   description: "Sepetinizdeki ürünleri görüntüleyin ve siparişinizi tamamlayın.",
 };
 
-export default function SepetPage() {
+export default async function SepetPage() {
+  const session = await getSessionUser();
+  let addresses: Address[] = [];
+  let profile: { name: string; email: string; phone: string } | undefined;
+
+  if (session) {
+    const [addrs, user] = await Promise.all([
+      getAddresses(session.uid),
+      getUserById(session.uid),
+    ]);
+    addresses = addrs;
+    if (user) {
+      profile = { name: user.name, email: user.email, phone: user.phone ?? "" };
+    }
+  }
+
   return (
     <>
       <Navbar />
@@ -25,7 +43,11 @@ export default function SepetPage() {
             🛒 Sepetim
           </h1>
         </div>
-        <SepetClient />
+        <SepetClient
+          addresses={addresses}
+          profile={profile}
+          paymentReady={paymentConfigured()}
+        />
       </main>
       <Footer />
     </>

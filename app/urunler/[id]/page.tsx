@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import ImageGallery from "@/components/ImageGallery";
+import ActivityPing from "@/components/ActivityPing";
 import ReviewForm from "@/components/ReviewForm";
 import { AddToCartDetail } from "@/components/cart/AddToCartButton";
 import { addReviewAction } from "./actions";
@@ -23,6 +24,9 @@ import { getArticle } from "@/lib/rehber";
 import { getReviews, ratingSummary } from "@/lib/reviews";
 
 type Params = Promise<{ id: string }>;
+
+// Soğuk önbellekte katalog çekimi uzun sürebilir — Vercel süre limiti yükseltildi
+export const maxDuration = 60;
 
 export async function generateMetadata({ params }: { params: Params }) {
   const { id } = await params;
@@ -95,6 +99,8 @@ export default async function ProductDetailPage({
   return (
     <>
       <Navbar />
+      {/* Üye denetim kaydı: ürün görüntüleme olayı */}
+      <ActivityPing productId={product.id} productName={product.name} />
       <main className="mx-auto min-h-svh w-full max-w-7xl px-4 pb-20 pt-24 sm:px-6 lg:px-8">
         {/* Kırıntı */}
         <nav className="mb-6 text-xs text-muted">

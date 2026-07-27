@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import SiteSearch from "./SiteSearch";
+import ThemeToggle from "./ThemeToggle";
 import CartDrawer from "@/components/cart/CartDrawer";
 import { useCart } from "@/components/cart/CartProvider";
 import { logoutAction } from "@/app/hesap/actions";
@@ -19,6 +20,11 @@ const links = [
 function readDisplayName(): string | null {
   const match = document.cookie.match(/(?:^|;\s*)ga_user=([^;]+)/);
   return match ? decodeURIComponent(match[1]) : null;
+}
+
+function readRole(): string | null {
+  const match = document.cookie.match(/(?:^|;\s*)ga_role=([^;]+)/);
+  return match ? match[1] : null;
 }
 
 function CartButton({ onClick }: { onClick: () => void }) {
@@ -44,6 +50,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -54,12 +61,13 @@ export default function Navbar() {
 
   useEffect(() => {
     setUserName(readDisplayName());
+    setIsAdmin(readRole() === "admin");
   }, []);
 
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-        scrolled || menuOpen ? "glass-strong" : "bg-transparent"
+        scrolled || menuOpen ? "glass-strong" : "glass-nav"
       }`}
     >
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -83,7 +91,7 @@ export default function Navbar() {
             <li key={link.href}>
               <Link
                 href={link.href}
-                className="rounded-lg px-3 py-2 text-sm text-muted transition-colors hover:bg-cyan-400/10 hover:text-foreground"
+                className="rounded-lg px-3 py-2 text-sm text-foreground/85 transition-colors hover:bg-cyan-400/10 hover:text-foreground"
               >
                 {link.label}
               </Link>
@@ -96,12 +104,22 @@ export default function Navbar() {
           <div className="hidden items-center gap-1.5 md:flex">
             {userName ? (
               <>
-                <span className="max-w-[9rem] truncate px-1 text-sm text-muted">
-                  Merhaba,{" "}
-                  <strong className="text-foreground">{userName}</strong>
-                </span>
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    className="rounded-xl border border-amber-400/40 px-3 py-2 text-sm font-semibold text-amber-300 transition-colors hover:border-amber-400/70 hover:bg-amber-400/10"
+                  >
+                    ⚙️ Yönetim
+                  </Link>
+                )}
+                <Link
+                  href="/hesap"
+                  className="max-w-[10rem] truncate rounded-lg px-2 py-2 text-sm text-foreground/85 transition-colors hover:bg-cyan-400/10 hover:text-foreground"
+                >
+                  👤 <strong className="text-foreground">{userName}</strong>
+                </Link>
                 <form action={logoutAction}>
-                  <button className="rounded-lg px-3 py-2 text-sm text-muted transition-colors hover:bg-cyan-400/10 hover:text-foreground">
+                  <button className="rounded-lg px-3 py-2 text-sm text-foreground/85 transition-colors hover:bg-cyan-400/10 hover:text-foreground">
                     Çıkış
                   </button>
                 </form>
@@ -110,7 +128,7 @@ export default function Navbar() {
               <>
                 <Link
                   href="/giris"
-                  className="rounded-lg px-3 py-2 text-sm text-muted transition-colors hover:bg-cyan-400/10 hover:text-foreground"
+                  className="rounded-lg px-3 py-2 text-sm text-foreground/85 transition-colors hover:bg-cyan-400/10 hover:text-foreground"
                 >
                   Giriş Yap
                 </Link>
@@ -123,6 +141,9 @@ export default function Navbar() {
               </>
             )}
           </div>
+
+          {/* Tema düğmesi */}
+          <ThemeToggle />
 
           {/* Büyüteç - sepetin hemen solunda */}
           <SiteSearch />
@@ -167,7 +188,7 @@ export default function Navbar() {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="block rounded-lg px-4 py-3 text-muted transition-colors hover:bg-cyan-400/10 hover:text-foreground"
+                  className="block rounded-lg px-4 py-3 text-foreground/85 transition-colors hover:bg-cyan-400/10 hover:text-foreground"
                   onClick={() => setMenuOpen(false)}
                 >
                   {link.label}
@@ -178,10 +199,22 @@ export default function Navbar() {
           <div className="mt-4 flex flex-col gap-2">
             {userName ? (
               <>
-                <span className="px-4 text-sm text-muted">
-                  Merhaba,{" "}
-                  <strong className="text-foreground">{userName}</strong>
-                </span>
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    className="rounded-xl border border-amber-400/40 px-5 py-3 text-center font-semibold text-amber-300"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    ⚙️ Yönetim Paneli
+                  </Link>
+                )}
+                <Link
+                  href="/hesap"
+                  className="glass rounded-xl px-5 py-3 text-center font-semibold"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  👤 Hesabım — {userName}
+                </Link>
                 <form action={logoutAction}>
                   <button className="glass w-full rounded-xl px-5 py-3 text-center font-semibold">
                     Çıkış Yap

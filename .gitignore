@@ -43,3 +43,6 @@ next-env.d.ts
 
 # runtime data (kullanıcı hesapları / yorumlar - parola hashleri içerir)
 /data/
+
+.vercel
+.env*

@@ -18,6 +18,10 @@ import {
   productMatchesBrand,
 } from "@/lib/catalog";
 
+// Soğuk önbellekte tüm katalog çekilir (40 istek) — varsayılan 10 sn'lik
+// Vercel fonksiyon limitine takılmaması için süre yükseltildi
+export const maxDuration = 60;
+
 export const metadata = {
   title: "Ürünler | Gri Akvaryum",
   description:

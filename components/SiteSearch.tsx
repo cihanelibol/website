@@ -206,7 +206,7 @@ export default function SiteSearch() {
         >
           {/* Blurlu arka plan */}
           <div
-            className="absolute inset-0 bg-[#04101c]/70 backdrop-blur-md"
+            className="absolute inset-0 bg-background/70 backdrop-blur-md"
             onClick={close}
           />
 

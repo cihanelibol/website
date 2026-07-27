@@ -26,7 +26,7 @@ export default function SortSelect() {
     <select
       value={current}
       onChange={(e) => onChange(e.target.value)}
-      className="glass cursor-pointer rounded-xl px-4 py-2.5 text-sm font-medium text-foreground outline-none transition-colors hover:border-cyan-400/40 [&>option]:bg-[#071a2b]"
+      className="glass cursor-pointer rounded-xl px-4 py-2.5 text-sm font-medium text-foreground outline-none transition-colors hover:border-cyan-400/40 [&>option]:bg-surface"
       aria-label="Sıralama"
     >
       {options.map((o) => (

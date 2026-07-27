@@ -1,10 +1,22 @@
 @import "tailwindcss";
 
+/* Açık temaya özel ince ayarlar için varyant: light:hidden, light:block ... */
+@custom-variant light ([data-theme="light"] &);
+
+/* ============================================================
+   TEMA TOKEN'LARI
+   Varsayılan (:root) = koyu tema. Açık tema [data-theme="light"]
+   ile aynı token'ları geçersiz kılar; bileşenler yalnızca token
+   ve Tailwind palet sınıfları kullandığı için otomatik uyar.
+   ============================================================ */
 :root {
+  color-scheme: dark;
+
   /* Apple San Francisco → Windows Segoe UI → diğer sistem fontları */
   --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Display",
     "SF Pro Text", "Segoe UI Variable", "Segoe UI", Roboto, "Helvetica Neue",
     Arial, sans-serif;
+
   --background: #04101c;
   --surface: #071a2b;
   --foreground: #e8f4fb;
@@ -12,6 +24,98 @@
   --accent: #22d3ee;
   --accent-deep: #0891b2;
   --glow: rgba(34, 211, 238, 0.35);
+
+  /* Cam, kart ve dekor efektleri */
+  --glass-bg: rgba(3, 12, 21, 0.75);
+  --glass-border: rgba(34, 211, 238, 0.12);
+  --glass-strong-bg: rgba(2, 10, 18, 0.9);
+  --glass-strong-border: rgba(34, 211, 238, 0.15);
+  --glass-nav-bg: color-mix(in srgb, #020a12 65%, transparent);
+  --card-hover-shadow: rgba(8, 145, 178, 0.25);
+  --card-hover-border: rgba(34, 211, 238, 0.45);
+  --text-halo: rgba(4, 16, 28, 0.55);
+  --bubble-core: rgba(255, 255, 255, 0.35);
+  --bubble-edge: rgba(34, 211, 238, 0.08);
+  --scrollbar-thumb: rgba(34, 211, 238, 0.25);
+  --scrollbar-thumb-hover: rgba(34, 211, 238, 0.45);
+
+  /* Marka gradyanı (text-gradient / text-shine)
+     Yeşile kaçan uç yok: videodaki yeşil mercanların üzerinde kaybolmasın */
+  --gradient-from: #93c5fd;
+  --gradient-mid: #38bdf8;
+  --gradient-to: #22d3ee;
+
+  /* Palet eşlemesi: koyu zeminde açık tonlar (Tailwind varsayılanları).
+     Açık temada koyu karşılıklarına döner; böylece bileşenlerdeki
+     text-cyan-300, border-cyan-400/15 gibi sınıflar iki temada da okunur. */
+  --tone-cyan-100: #cffafe;
+  --tone-cyan-200: #a5f3fc;
+  --tone-cyan-300: #67e8f9;
+  --tone-cyan-400: #22d3ee;
+  --tone-cyan-950: #083344;
+  --tone-teal-300: #5eead4;
+  --tone-teal-400: #2dd4bf;
+  --tone-sky-300: #7dd3fc;
+  --tone-emerald-300: #6ee7b7;
+  --tone-emerald-400: #34d399;
+  --tone-violet-300: #c4b5fd;
+  --tone-rose-300: #fda4af;
+  --tone-fuchsia-300: #f0abfc;
+  --tone-amber-300: #fcd34d;
+  --tone-amber-400: #fbbf24;
+  --tone-red-300: #fca5a5;
+  --tone-red-400: #f87171;
+  --tone-slate-300: #cbd5e1;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  --background: #f2f7fa;
+  --surface: #ffffff;
+  --foreground: #0b2531;
+  --muted: #3d5866;
+  --accent: #0891b2;
+  --accent-deep: #0e7490;
+  --glow: rgba(8, 145, 178, 0.18);
+
+  --glass-bg: rgba(255, 255, 255, 0.88);
+  --glass-border: rgba(8, 145, 178, 0.16);
+  --glass-strong-bg: rgba(242, 247, 250, 0.92);
+  --glass-strong-border: rgba(8, 145, 178, 0.14);
+  /* Navbar, hero kartlarıyla aynı beyazlıkta */
+  --glass-nav-bg: var(--glass-bg);
+  --card-hover-shadow: rgba(8, 145, 178, 0.16);
+  --card-hover-border: rgba(8, 145, 178, 0.45);
+  --text-halo: rgba(242, 247, 250, 0.75);
+  --bubble-core: rgba(8, 145, 178, 0.22);
+  --bubble-edge: rgba(8, 145, 178, 0.05);
+  --scrollbar-thumb: rgba(8, 145, 178, 0.3);
+  --scrollbar-thumb-hover: rgba(8, 145, 178, 0.5);
+
+  --gradient-from: #1e40af;
+  --gradient-mid: #075985;
+  --gradient-to: #0e7490;
+
+  /* Açık zeminde koyu tonlar (AA kontrast hedefli) */
+  --tone-cyan-100: #164e63;
+  --tone-cyan-200: #155e75;
+  --tone-cyan-300: #0e7490;
+  --tone-cyan-400: #0891b2;
+  --tone-cyan-950: #cffafe;
+  --tone-teal-300: #0f766e;
+  --tone-teal-400: #0d9488;
+  --tone-sky-300: #0369a1;
+  --tone-emerald-300: #047857;
+  --tone-emerald-400: #059669;
+  --tone-violet-300: #6d28d9;
+  --tone-rose-300: #be123c;
+  --tone-fuchsia-300: #a21caf;
+  --tone-amber-300: #b45309;
+  --tone-amber-400: #d97706;
+  --tone-red-300: #b91c1c;
+  --tone-red-400: #dc2626;
+  --tone-slate-300: #475569;
 }
 
 @theme inline {
@@ -23,6 +127,26 @@
   --color-accent-deep: var(--accent-deep);
   --font-sans: var(--font-system);
   --font-display: var(--font-system);
+
+  /* Tailwind palet sınıflarını temaya duyarlı hale getir */
+  --color-cyan-100: var(--tone-cyan-100);
+  --color-cyan-200: var(--tone-cyan-200);
+  --color-cyan-300: var(--tone-cyan-300);
+  --color-cyan-400: var(--tone-cyan-400);
+  --color-cyan-950: var(--tone-cyan-950);
+  --color-teal-300: var(--tone-teal-300);
+  --color-teal-400: var(--tone-teal-400);
+  --color-sky-300: var(--tone-sky-300);
+  --color-emerald-300: var(--tone-emerald-300);
+  --color-emerald-400: var(--tone-emerald-400);
+  --color-violet-300: var(--tone-violet-300);
+  --color-rose-300: var(--tone-rose-300);
+  --color-fuchsia-300: var(--tone-fuchsia-300);
+  --color-amber-300: var(--tone-amber-300);
+  --color-amber-400: var(--tone-amber-400);
+  --color-red-300: var(--tone-red-300);
+  --color-red-400: var(--tone-red-400);
+  --color-slate-300: var(--tone-slate-300);
 }
 
 html {
@@ -45,21 +169,35 @@ body {
 
 /* Cam efekti */
 .glass {
-  background: rgba(7, 26, 43, 0.55);
+  background: var(--glass-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(34, 211, 238, 0.12);
+  border: 1px solid var(--glass-border);
 }
 
 .glass-strong {
-  background: rgba(4, 16, 28, 0.8);
+  background: var(--glass-strong-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(34, 211, 238, 0.15);
+  border-bottom: 1px solid var(--glass-strong-border);
+}
+
+/* Navbar'ın kaydırılmamış hali: video üzerinde de net dursun diye
+   hafif camlı bant (glass-strong'dan daha şeffaf, yalnızca alt çizgili) */
+.glass-nav {
+  background: var(--glass-nav-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .text-gradient {
-  background: linear-gradient(120deg, #7dd3fc 0%, #22d3ee 45%, #2dd4bf 100%);
+  background: linear-gradient(
+    120deg,
+    var(--gradient-from) 0%,
+    var(--gradient-mid) 45%,
+    var(--gradient-to) 100%
+  );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -80,13 +218,22 @@ body {
       rgba(255, 255, 255, 0.95) 50%,
       transparent 58%
     ),
-    linear-gradient(120deg, #7dd3fc 0%, #22d3ee 45%, #2dd4bf 100%);
+    linear-gradient(
+      120deg,
+      var(--gradient-from) 0%,
+      var(--gradient-mid) 45%,
+      var(--gradient-to) 100%
+    );
   background-size: 250% 100%, 100% 100%;
   background-repeat: no-repeat;
   background-position: 110% 0, 0 0;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  /* background-clip: text ile text-shadow gradyanın içinden görünür; kapat.
+     Okunabilirlik halesi yerine drop-shadow kullan: glif piksellerine uygulanır */
+  text-shadow: none;
+  filter: drop-shadow(0 1px 2px var(--text-halo)) drop-shadow(0 2px 14px var(--text-halo));
   animation: text-shine 4.5s ease-in-out infinite;
 }
 
@@ -104,13 +251,31 @@ body {
   box-shadow: 0 0 40px var(--glow);
 }
 
+/* Hero yazı bloğunun arkasında EN YOĞUN, kenarlara doğru azalan katman.
+   Merkez, başlık+paragraf bloğunun üzerine oturur; kenarlarda video nettir. */
+.hero-center-scrim {
+  background: radial-gradient(
+    ellipse 42% 74% at 40% 52%,
+    color-mix(in srgb, var(--background) 72%, transparent) 0%,
+    color-mix(in srgb, var(--background) 40%, transparent) 45%,
+    transparent 66%
+  );
+}
+
+/* Video/görsel üstündeki yazılar için temaya uygun okunabilirlik halesi */
+.text-halo {
+  text-shadow:
+    0 1px 3px var(--text-halo),
+    0 2px 18px var(--text-halo);
+}
+
 .card-hover {
   transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease, border-color 0.35s ease;
 }
 .card-hover:hover {
   transform: translateY(-6px);
-  box-shadow: 0 18px 50px rgba(8, 145, 178, 0.25);
-  border-color: rgba(34, 211, 238, 0.45);
+  box-shadow: 0 18px 50px var(--card-hover-shadow);
+  border-color: var(--card-hover-border);
 }
 
 /* Yüzen animasyon */
@@ -132,7 +297,7 @@ body {
   position: absolute;
   bottom: -40px;
   border-radius: 9999px;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.35), rgba(34, 211, 238, 0.08));
+  background: radial-gradient(circle at 30% 30%, var(--bubble-core), var(--bubble-edge));
   animation: bubble-rise linear infinite;
   pointer-events: none;
 }
@@ -163,13 +328,14 @@ body {
 .marquee-track-ltr {
   display: flex;
   width: max-content;
-  animation: marquee-ltr 35s linear infinite;
+  /* Süreyi öğe bazında [--marquee-duration:60s] ile değiştirebilirsiniz */
+  animation: marquee-ltr var(--marquee-duration, 35s) linear infinite;
   will-change: transform;
 }
 .marquee-track-rtl {
   display: flex;
   width: max-content;
-  animation: marquee-rtl 28s linear infinite;
+  animation: marquee-rtl var(--marquee-duration, 28s) linear infinite;
   will-change: transform;
 }
 .marquee-track-ltr:hover,
@@ -219,7 +385,7 @@ body {
 ::-webkit-scrollbar { width: 10px; }
 ::-webkit-scrollbar-track { background: var(--background); }
 ::-webkit-scrollbar-thumb {
-  background: rgba(34, 211, 238, 0.25);
+  background: var(--scrollbar-thumb);
   border-radius: 8px;
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(34, 211, 238, 0.45); }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }

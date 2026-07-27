@@ -58,7 +58,7 @@ export default function BrandMarquee() {
                     alt={`${logo.name} logosu`}
                     fill
                     sizes="160px"
-                    className="object-contain brightness-0 invert"
+                    className="object-contain brightness-0 invert light:invert-0"
                     unoptimized
                   />
                 </div>
