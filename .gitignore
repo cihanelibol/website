@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.gstack/
+
+# runtime data (kullanıcı hesapları / yorumlar - parola hashleri içerir)
+/data/

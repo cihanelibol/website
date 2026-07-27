@@ -1,26 +1,225 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Apple San Francisco → Windows Segoe UI → diğer sistem fontları */
+  --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+    "SF Pro Text", "Segoe UI Variable", "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  --background: #04101c;
+  --surface: #071a2b;
+  --foreground: #e8f4fb;
+  --muted: #8fb3c7;
+  --accent: #22d3ee;
+  --accent-deep: #0891b2;
+  --glow: rgba(34, 211, 238, 0.35);
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-deep: var(--accent-deep);
+  --font-sans: var(--font-system);
+  --font-display: var(--font-system);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  /* Kaydırma çubuğu görünüp kaybolunca sayfa genişliğinin oynamaması için */
+  scrollbar-gutter: stable;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-system);
+  overflow-x: hidden;
 }
+
+.font-display {
+  font-family: var(--font-system);
+  letter-spacing: -0.02em;
+}
+
+/* Cam efekti */
+.glass {
+  background: rgba(7, 26, 43, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(34, 211, 238, 0.12);
+}
+
+.glass-strong {
+  background: rgba(4, 16, 28, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(34, 211, 238, 0.15);
+}
+
+.text-gradient {
+  background: linear-gradient(120deg, #7dd3fc 0%, #22d3ee 45%, #2dd4bf 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Vurgu fontu (Instrument Serif Italic - smartcallcenter.com.tr tarzı) */
+.font-script {
+  font-family: var(--font-script), Georgia, "Times New Roman", serif;
+  font-style: italic;
+}
+
+/* Gradyan yazı + üzerinde soldan sağa gezen parlama bandı */
+.text-shine {
+  background-image:
+    linear-gradient(
+      115deg,
+      transparent 42%,
+      rgba(255, 255, 255, 0.95) 50%,
+      transparent 58%
+    ),
+    linear-gradient(120deg, #7dd3fc 0%, #22d3ee 45%, #2dd4bf 100%);
+  background-size: 250% 100%, 100% 100%;
+  background-repeat: no-repeat;
+  background-position: 110% 0, 0 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: text-shine 4.5s ease-in-out infinite;
+}
+
+@keyframes text-shine {
+  0% {
+    background-position: 110% 0, 0 0;
+  }
+  45%,
+  100% {
+    background-position: -10% 0, 0 0;
+  }
+}
+
+.glow {
+  box-shadow: 0 0 40px var(--glow);
+}
+
+.card-hover {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease, border-color 0.35s ease;
+}
+.card-hover:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 50px rgba(8, 145, 178, 0.25);
+  border-color: rgba(34, 211, 238, 0.45);
+}
+
+/* Yüzen animasyon */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Yükselen baloncuklar */
+@keyframes bubble-rise {
+  0% { transform: translateY(0) scale(1); opacity: 0; }
+  10% { opacity: 0.5; }
+  100% { transform: translateY(-110vh) scale(1.4); opacity: 0; }
+}
+.bubble {
+  position: absolute;
+  bottom: -40px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.35), rgba(34, 211, 238, 0.08));
+  animation: bubble-rise linear infinite;
+  pointer-events: none;
+}
+
+/* Giriş animasyonları */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fade-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+
+/* Marquee - soldan sağa (logolar) */
+@keyframes marquee-ltr {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+/* Marquee - sağdan sola (fotoğraflar) */
+@keyframes marquee-rtl {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track-ltr {
+  display: flex;
+  width: max-content;
+  animation: marquee-ltr 35s linear infinite;
+  will-change: transform;
+}
+.marquee-track-rtl {
+  display: flex;
+  width: max-content;
+  animation: marquee-rtl 28s linear infinite;
+  will-change: transform;
+}
+.marquee-track-ltr:hover,
+.marquee-track-rtl:hover {
+  animation-play-state: paused;
+}
+/* Kenarlarda bulanıklıktan çıkma efekti */
+.edge-fade {
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 12%,
+    black 88%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 12%,
+    black 88%,
+    transparent 100%
+  );
+}
+.edge-blur-left,
+.edge-blur-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 90px;
+  z-index: 10;
+  pointer-events: none;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+.edge-blur-left {
+  left: 0;
+  mask-image: linear-gradient(to right, black, transparent);
+  -webkit-mask-image: linear-gradient(to right, black, transparent);
+}
+.edge-blur-right {
+  right: 0;
+  mask-image: linear-gradient(to left, black, transparent);
+  -webkit-mask-image: linear-gradient(to left, black, transparent);
+}
+
+/* Kaydırma çubuğu */
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: var(--background); }
+::-webkit-scrollbar-thumb {
+  background: rgba(34, 211, 238, 0.25);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(34, 211, 238, 0.45); }
