@@ -18,7 +18,7 @@
     "security:admin": "node --conditions=react-server --experimental-strip-types scripts/admin.mjs"
   },
   "dependencies": {
-    "@ai-sdk/google": "^3.0.145",
+    "@ai-sdk/google": "^4.0.114",
     "@neondatabase/serverless": "^1.1.0",
     "ai": "^6.0.330",
     "jose": "^6.2.17",
