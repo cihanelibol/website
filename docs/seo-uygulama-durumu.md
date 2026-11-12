@@ -12,7 +12,7 @@
 - Yayın sonrası 10 dakikalık Vercel hata sorgusunda kayıt bulunmadı. Sürekli izleme veya harici log drain kurulumu bu paket kapsamında doğrulanmadı.
 - Gerçek Google betiğiyle `page_view` ve `view_item` isteklerinin G-VFL3YXK217 hedefine hazırlandığı doğrulandı; QA istekleri gönderilmeden yakalandı.
 - GitHub push başarısız: mevcut `cihanelibol` kimliğine yazma için 403; bağlı GitHub uygulamasında da yazma yetkisi yok. Kod yerel commit'te ve üretimde; GitHub main henüz güncel değil. Yazma erişimi sağlanınca mevcut commit'ler gönderilmeli; eski main'den yeni yayın başlatmak bu paketi geri alabilir.
-- Search Console tarayıcı erişim sunucusu kullanılamadı; sitemap'in hesap panelinden gönderimi yapılmadı.
+- Kullanıcı Search Console sitemap gönderimini tamamladığını bildirdi. Hesap panelindeki işlenme sonucu ve URL denetimi bağımsız olarak doğrulanmadı.
 
 ## Uygulananlar
 
@@ -52,7 +52,7 @@ node scripts/verify-seo-browser.mjs https://griakvaryum.com
 
 ## Devam eden / hesap veya işletme verisi gereken işler
 
-- Search Console mülküne `https://griakvaryum.com/sitemap.xml` gönderimi ve URL denetimi. Hesap panelinden gönderim henüz yapılmadı.
+- Search Console mülkünde `https://griakvaryum.com/sitemap.xml` işlenme sonucunun ve URL denetiminin kontrolü. Kullanıcı sitemap gönderimini tamamladığını bildirdi.
 - Analytics raporlarının hesap içinde doğrulanması, Search Console bağlantısı ve önemli olayların seçimi. Yayımlanmış hedefin varlığı, raporlardaki verinin doğrulanmasıyla aynı şey değildir.
 - Google İşletme Profili güncellemeleri ve eski işletme kayıtlarının doğrulanması.
 - Ürünlerin gerçek marj/stok önceliğine göre ilk 50 ürünün özgün teknik açıklama ve fotoğrafları.
