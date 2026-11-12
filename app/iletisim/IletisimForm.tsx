@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import AppIcon from "@/components/AppIcon";
+import { useActionState, useEffect, useRef } from "react";
 import { contactAction, type ContactState } from "./actions";
 
 const inputClass =
@@ -15,10 +16,13 @@ export default function IletisimForm() {
     {}
   );
 
+  const successRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (state.success) successRef.current?.focus(); }, [state.success]);
+
   if (state.success) {
     return (
-      <div className="flex flex-col items-center gap-3 py-10 text-center">
-        <span className="text-5xl">💌</span>
+      <div ref={successRef} tabIndex={-1} role="status" className="flex flex-col items-center gap-3 py-10 text-center">
+        <span className="text-5xl"><AppIcon name="mail" /></span>
         <h3 className="font-display text-xl font-semibold">
           Mesajınız bize ulaştı!
         </h3>
@@ -39,6 +43,7 @@ export default function IletisimForm() {
           </label>
           <input
             id="name"
+            autoComplete="name"
             name="name"
             type="text"
             required
@@ -52,6 +57,7 @@ export default function IletisimForm() {
           </label>
           <input
             id="phone"
+            autoComplete="tel"
             name="phone"
             type="tel"
             placeholder="05xx xxx xx xx"
@@ -66,6 +72,7 @@ export default function IletisimForm() {
         </label>
         <input
           id="email"
+          autoComplete="email"
           name="email"
           type="email"
           placeholder="ornek@eposta.com"
@@ -104,7 +111,7 @@ export default function IletisimForm() {
         />
       </div>
 
-      {state.error && <p className="text-sm text-amber-400">⚠ {state.error}</p>}
+      {state.error && <p role="alert" className="text-sm text-amber-400"><AppIcon name="warning" /> {state.error}</p>}
 
       <button
         disabled={pending}

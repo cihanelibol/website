@@ -1,0 +1,19 @@
+[
+  {
+    "productIds": [3631812],
+    "name": "Seachem Flourite Sand 7 kg",
+    "brand": "Seachem",
+    "sku": "3515",
+    "page": "https://www.seachem.com/flourite-sand.php",
+    "images": ["https://www.seachem.com/downloads/images/3515-Flourite-Sand-7-kg.png"]
+  },
+  {
+    "productIds": [3752659],
+    "name": "Tropical Biorept L 500 ml / 140 g",
+    "brand": "Tropical",
+    "sku": "11355",
+    "barcode": "5900469113554",
+    "page": "https://zookaralyste.lv/product-lav-45457-TROPICAL-Biorept-L-500-ml.html",
+    "images": ["https://zookaralyste.lv/hpeciai/08fc53f497b7938cfd920a06c38ee334/lav_pl_TROPICAL-Biorept-L-500-ml-45457_1.webp"]
+  }
+]

@@ -1,9 +1,11 @@
+import AppIcon from "@/components/AppIcon";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { articles, categories, getArticlesByCategory } from "@/lib/rehber";
-import { SITE_URL } from "@/lib/site";
+import { CONTACT, SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Yardım Merkezi | Akvaryum Rehberleri - Gri Akvaryum",
@@ -35,7 +37,8 @@ const featuredSlugs = [
   "akvaryum-temizligi",
 ];
 
-export default function YardimMerkeziPage() {
+export default async function YardimMerkeziPage() {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   const featured = featuredSlugs
     .map((slug) => articles.find((a) => a.slug === slug))
     .filter((a): a is NonNullable<typeof a> => Boolean(a));
@@ -57,19 +60,17 @@ export default function YardimMerkeziPage() {
   return (
     <>
       <Navbar />
-      <main className="mx-auto min-h-svh w-full max-w-7xl px-4 pb-20 pt-28 sm:px-6 lg:px-8">
+      <main id="main-content" className="store-container store-guide-index min-h-svh pb-20 pt-28">
         <script
+          nonce={nonce}
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
 
         {/* Hero */}
         <div className="mx-auto mb-14 max-w-3xl text-center">
-          <span className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-400">
-            Yardım Merkezi
-          </span>
           <h1 className="font-display mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
-            Akvaryum Bilgi <span className="text-gradient">Kütüphanesi</span>
+            Akvaryum Bilgi <span className="text-accent">Kütüphanesi</span>
           </h1>
           <p className="mt-5 text-lg leading-relaxed text-muted">
             İlk kurulumdan resif akvaryumuna, hastalık tedavisinden ekipman
@@ -92,7 +93,7 @@ export default function YardimMerkeziPage() {
                   href={`/rehber/${a.slug}`}
                   className="glass card-hover group flex flex-col rounded-3xl p-6"
                 >
-                  <span className="text-3xl">{cat?.emoji}</span>
+                  <span className="text-3xl"><AppIcon name={cat?.icon ?? "book"} /></span>
                   <h3 className="font-display mt-4 font-semibold leading-snug group-hover:text-cyan-200">
                     {a.title}
                   </h3>
@@ -115,11 +116,11 @@ export default function YardimMerkeziPage() {
             return (
               <section key={cat.slug} id={cat.slug} className="scroll-mt-24">
                 <div className="glass rounded-3xl p-7 sm:p-9">
-                  <div className="mb-6 flex items-start gap-4">
+                  <div className="mb-6 flex flex-wrap items-start gap-4">
                     <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400/20 to-teal-500/20 text-3xl">
-                      {cat.emoji}
+                      <AppIcon name={cat.icon ?? "book"} />
                     </span>
-                    <div>
+                    <div className="min-w-0 flex-1 basis-48">
                       <h2 className="font-display text-xl font-bold sm:text-2xl">
                         {cat.title}
                       </h2>
@@ -133,9 +134,9 @@ export default function YardimMerkeziPage() {
                       <Link
                         key={a.slug}
                         href={`/rehber/${a.slug}`}
-                        className="group flex items-start justify-between gap-4 rounded-2xl border border-transparent bg-cyan-400/[0.04] p-4 transition-colors hover:border-cyan-400/25 hover:bg-cyan-400/10"
+                        className="group flex flex-wrap items-start justify-between gap-4 rounded-2xl border border-transparent bg-cyan-400/[0.04] p-4 transition-colors hover:border-cyan-400/25 hover:bg-cyan-400/10"
                       >
-                        <div>
+                        <div className="min-w-0 flex-1 basis-40">
                           <h3 className="font-medium leading-snug group-hover:text-cyan-200">
                             {a.title}
                           </h3>
@@ -164,7 +165,7 @@ export default function YardimMerkeziPage() {
             gönderin, birlikte çözelim.
           </p>
           <a
-            href="https://wa.me/900000000000"
+            href={CONTACT.whatsappHref}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-6 inline-block rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 px-8 py-4 font-semibold text-slate-950 transition-transform hover:scale-105"

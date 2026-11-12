@@ -1,0 +1,68 @@
+name: Security
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '23 5 * * 1'
+permissions:
+  contents: read
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18-alpine@sha256:9ba53c7d41ea093baf5c1ba635ba5434c4f979880527d49bb7d9237d3193085b
+        env:
+          POSTGRES_DB: security_test
+          POSTGRES_USER: security_test
+          POSTGRES_PASSWORD: local-ci-disposable-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U security_test -d security_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm audit --audit-level=moderate
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run test:database
+        env:
+          TEST_DATABASE_URL: postgres://security_test:local-ci-disposable-only@127.0.0.1:5432/security_test
+      - run: npm run build:isolated
+      - run: node scripts/check-build-artifacts.mjs
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: gitleaks/gitleaks-action@dcedce43c6f43de0b836d1fe38946645c9c638dc # v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: 'false'
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: 'false'
+  codeql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: github/codeql-action/init@5895b2c9be147bc7f1c75ce72c5cb577febb1907 # v4
+        with:
+          languages: javascript-typescript
+          build-mode: none
+      - uses: github/codeql-action/analyze@5895b2c9be147bc7f1c75ce72c5cb577febb1907 # v4

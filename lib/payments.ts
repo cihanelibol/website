@@ -9,9 +9,9 @@ export type PaymentInit =
   | { mode: "iyzico"; paymentPageUrl: string };
 
 export function paymentConfigured(): boolean {
-  return Boolean(
-    process.env.IYZICO_API_KEY && process.env.IYZICO_SECRET_KEY
-  );
+  // API anahtarlarının varlığı, henüz uygulanmamış checkout'u hazır yapmaz.
+  // Entegrasyon ve callback doğrulaması tamamlanana kadar ödemesiz sipariş kullanılır.
+  return false;
 }
 
 export async function initiateIyzicoCheckout(_order: {
@@ -24,6 +24,7 @@ export async function initiateIyzicoCheckout(_order: {
   city: string;
   items: { id: number; name: string; qty: number; price: number }[];
 }): Promise<PaymentInit> {
+  void _order; // Payload sözleşmesi entegrasyon tamamlandığında kullanılacak.
   if (!paymentConfigured()) return { mode: "hazirlik" };
 
   // TODO (iyzico bilgileri gelince): CheckoutFormInitialize isteği at,

@@ -1,3 +1,4 @@
+import AppIcon from "@/components/AppIcon";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { CONTACT } from "@/lib/site";
@@ -11,28 +12,28 @@ export const metadata = {
 
 const infoCards = [
   {
-    emoji: "📍",
+    icon: "pin",
     title: "Adres",
     content: CONTACT.address,
     href: CONTACT.mapsUrl,
     linkLabel: "Yol tarifi al →",
   },
   {
-    emoji: "📞",
+    icon: "phone",
     title: "Telefon",
     content: CONTACT.phone,
     href: CONTACT.phoneHref,
     linkLabel: "Hemen ara →",
   },
   {
-    emoji: "💬",
+    icon: "message",
     title: "WhatsApp",
     content: CONTACT.whatsapp,
     href: CONTACT.whatsappHref,
     linkLabel: "Mesaj gönder →",
   },
   {
-    emoji: "🕐",
+    icon: "clock",
     title: "Çalışma Saatleri",
     content: CONTACT.hours,
   },
@@ -42,11 +43,9 @@ export default function IletisimPage() {
   return (
     <>
       <Navbar />
-      <main className="mx-auto max-w-7xl px-4 pb-20 pt-28 sm:px-6 lg:px-8">
+      <main id="main-content" className="store-container pb-20 pt-28">
         <div className="mx-auto mb-12 max-w-2xl text-center">
-          <span className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-400">
-            İletişim
-          </span>
+
           <h1 className="font-display mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
             Bize Ulaşın
           </h1>
@@ -55,23 +54,23 @@ export default function IletisimPage() {
             WhatsApp veya aşağıdaki formu kullanabilirsiniz.
           </p>
           <p className="mt-3 text-sm text-muted">
-            ⭐ Google&apos;da{" "}
+
             <a
               href={CONTACT.mapsUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="font-semibold text-cyan-300 transition-colors hover:text-cyan-200"
             >
-              {CONTACT.rating} / 5
+              Google Haritalar’da güncel müşteri yorumları
             </a>{" "}
-            ({CONTACT.reviewCount} yorum)
+
           </p>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {infoCards.map((card) => (
             <div key={card.title} className="glass card-hover rounded-3xl p-6">
-              <span className="text-3xl">{card.emoji}</span>
+              <span className="text-3xl"><AppIcon name={card.icon ?? "book"} /></span>
               <h2 className="font-display mt-3 text-lg font-semibold">
                 {card.title}
               </h2>

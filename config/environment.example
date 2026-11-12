@@ -1,0 +1,29 @@
+# Production runtime. Never commit real values. Use distinct keys per environment.
+DATABASE_URL=
+# Switch only during the verified relational migration cutover.
+STORAGE_BACKEND=legacy
+SESSION_SECRET=
+APP_ORIGIN=http://localhost:3000
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+RESEND_API_KEY=
+MAIL_FROM=
+# Separate random 32+ character key for the private notification worker.
+CRON_SECRET=
+ADMIN_EMAILS=
+EASYTRADE_CATALOG_SLUG=
+# Set to 1 only after testing the enforced policy on the deployed preview.
+CSP_ENFORCE=0
+# Operator scripts use a separate DDL/admin role. Do not expose it to the runtime.
+# DATABASE_ADMIN_URL=
+
+# npm run dev ignores production database, mail and Google credentials.
+# Without a development DB it uses .gstack/dev-data locally.
+DEVELOPMENT_DATABASE_URL=
+DEVELOPMENT_SESSION_SECRET=
+DEVELOPMENT_APP_ORIGIN=http://localhost:3000
+DEVELOPMENT_GOOGLE_CLIENT_ID=
+DEVELOPMENT_GOOGLE_CLIENT_SECRET=
+DEVELOPMENT_RESEND_API_KEY=
+DEVELOPMENT_MAIL_FROM=
+DEVELOPMENT_ADMIN_EMAILS=

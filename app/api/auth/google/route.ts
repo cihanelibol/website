@@ -1,37 +1,16 @@
-// Google OAuth başlangıcı: kullanıcıyı Google izin ekranına yönlendirir.
-// CSRF koruması için rastgele "state" değeri çerezde saklanır ve dönüşte doğrulanır.
-
-import { randomBytes } from "crypto";
-import { cookies } from "next/headers";
+﻿import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { googleConfigured } from "@/lib/auth";
-
-export async function GET(request: Request) {
-  if (!googleConfigured()) {
-    return NextResponse.redirect(new URL("/giris?hata=google-kapali", request.url));
-  }
-
-  const origin = new URL(request.url).origin;
-  const state = randomBytes(16).toString("hex");
-
-  const store = await cookies();
-  store.set("ga_oauth_state", state, {
-    httpOnly: true,
-    sameSite: "lax",
-    maxAge: 600,
-    path: "/",
-  });
-
-  const params = new URLSearchParams({
-    client_id: process.env.GOOGLE_CLIENT_ID!,
-    redirect_uri: `${origin}/api/auth/google/callback`,
-    response_type: "code",
-    scope: "openid email profile",
-    state,
-    prompt: "select_account",
-  });
-
-  return NextResponse.redirect(
-    `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
-  );
+import { cookieOptions, getSessionUser, googleConfigured } from "@/lib/auth";
+import { appOrigin, guardRate, seal } from "@/lib/security";
+import { oauthCookie, startGoogle } from "@/lib/oauth";
+export async function GET() {
+  const fail = () => NextResponse.redirect(`${appOrigin()}/giris?hata=google-kapali`);
+  if (!googleConfigured()) return fail();
+  try {
+    await guardRate("google-start", 10, 600);
+    const session = await getSessionUser();
+    const { flow, url } = await startGoogle(session && Date.now() - session.authAt < 300_000 ? session.uid : undefined);
+    (await cookies()).set(oauthCookie(), seal(JSON.stringify(flow)), { ...cookieOptions(), maxAge: 600 });
+    return NextResponse.redirect(url);
+  } catch { return fail(); }
 }

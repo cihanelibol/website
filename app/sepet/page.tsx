@@ -30,7 +30,7 @@ export default async function SepetPage() {
   return (
     <>
       <Navbar />
-      <main className="mx-auto min-h-svh w-full max-w-7xl px-4 pb-20 pt-24 sm:px-6 lg:px-8">
+      <main id="main-content" className="store-container min-h-svh pb-20 pt-24">
         <div className="mb-8">
           <nav className="mb-1 text-xs text-muted">
             <Link href="/" className="hover:text-cyan-300">
@@ -40,7 +40,7 @@ export default async function SepetPage() {
             Sepetim
           </nav>
           <h1 className="font-display text-2xl font-bold tracking-tight sm:text-4xl">
-            🛒 Sepetim
+            Sepetim
           </h1>
         </div>
         <SepetClient

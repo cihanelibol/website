@@ -39,11 +39,15 @@ export type OrderRecord = {
   /** Ödeme yöntemi: iyzico entegrasyonu bağlanana dek "iyzico-bekliyor" */
   paymentMethod: "iyzico" | "iyzico-bekliyor";
   paymentStatus: "odendi" | "beklemede";
+  submission?: "pending" | "sent" | "unknown";
+  providerReference?: string;
+  paymentEvidence?: { actor: string; at: string; reference: string; note: string };
+  reconciliation?: { actor: string; at: string; reference: string; note: string };
   /** Sipariş durumu (eski kayıtlarda olmayabilir; "yeni" varsayılır) */
   status?: OrderStatus;
   /** Kargo bilgisi — durum "kargoda" olduğunda doldurulur */
   cargo?: { firma: string; takipNo: string };
   /** Durum geçmişi (zaman damgalı) */
-  history?: { status: OrderStatus; at: string; note?: string }[];
+  history?: { status: OrderStatus; at: string; note?: string; actor?: string }[];
   createdAt: string;
 };

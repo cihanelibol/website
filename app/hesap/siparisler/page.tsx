@@ -1,3 +1,4 @@
+import AppIcon from "@/components/AppIcon";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth";
@@ -25,7 +26,7 @@ export default async function SiparislerPage() {
 
   return (
     <section className="glass rounded-3xl p-6">
-      <h2 className="font-display mb-5 text-lg font-bold">📦 Siparişlerim</h2>
+      <h2 className="font-display mb-5 text-lg font-bold"><AppIcon name="package" /> Siparişlerim</h2>
 
       {orders.length === 0 ? (
         <div className="py-10 text-center">
@@ -78,7 +79,7 @@ export default async function SiparislerPage() {
 
               {order.cargo?.firma && (
                 <div className="mb-3 rounded-xl border border-violet-400/25 bg-violet-400/10 px-4 py-2.5 text-sm text-violet-200">
-                  🚚 {order.cargo.firma}
+                  <AppIcon name="truck" /> {order.cargo.firma}
                   {order.cargo.takipNo && (
                     <>
                       {" — Takip No: "}
@@ -106,7 +107,7 @@ export default async function SiparislerPage() {
 
               <div className="mt-3 flex items-center justify-between border-t border-cyan-400/10 pt-3">
                 <span className="text-xs text-muted">{order.addressText}</span>
-                <span className="font-display font-bold text-gradient">
+                <span className="font-display font-bold text-accent">
                   {formatPrice(order.total)}
                 </span>
               </div>

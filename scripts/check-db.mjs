@@ -1,19 +1,7 @@
-// Neon json_store tablosunu doğrular; yoksa oluşturur (tek seferlik kurulum)
-import { neon } from "@neondatabase/serverless";
-
-const url = process.env.DATABASE_URL;
-if (!url) {
-  console.error("DATABASE_URL tanımlı değil");
-  process.exit(1);
-}
-const sql = neon(url);
-
-await sql`
-  CREATE TABLE IF NOT EXISTS json_store (
-    key text PRIMARY KEY,
-    data jsonb NOT NULL,
-    updated_at timestamptz NOT NULL DEFAULT now()
-  )
-`;
-const rows = await sql`SELECT key, jsonb_array_length(data) AS adet FROM json_store ORDER BY key`;
-console.log("json_store hazır. Kayıtlar:", rows.length ? rows : "(boş)");
+﻿// Read-only check. Never creates or mutates tables.
+import { neon } from '@neondatabase/serverless';
+if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
+const sql = neon(process.env.DATABASE_URL);
+const rows = await sql`SELECT to_regclass('public.json_store') IS NOT NULL AS ready`;
+if (!rows[0]?.ready) throw new Error('json_store is missing. Use a separate migration role.');
+console.log('Database reachable; json_store exists. No data read or changed.');

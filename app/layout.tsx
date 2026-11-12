@@ -1,16 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Instrument_Serif } from "next/font/google";
-import { CartProvider } from "@/components/cart/CartProvider";
-import { SITE_URL } from "@/lib/site";
-import "./globals.css";
+import { headers } from "next/headers";
 
-// smartcallcenter.com.tr'deki italik vurgu yazısıyla aynı font
-const script = Instrument_Serif({
-  weight: "400",
-  style: "italic",
-  subsets: ["latin", "latin-ext"],
-  variable: "--font-script",
-});
+import { CartProvider } from "@/components/cart/CartProvider";
+import StoreContactBar from "@/components/StoreContactBar";
+import { SITE_URL } from "@/lib/site";
+import { OCEAN_INTRO_BOOTSTRAP } from "@/lib/ocean-intro";
+import "./globals.css";
+import "./storefront.css";
+import "./ocean-entry.css";
+
+// CSP nonces are request-specific; never serve a cached HTML nonce.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -27,30 +27,28 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f2f7fa",
+  themeColor: "#031d3a",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html
       lang="tr"
       data-theme="light"
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
-      className={`h-full antialiased ${script.variable}`}
+      className="h-full antialiased"
     >
       <head>
-        {/* Kaydedilmiş temayı ilk boyamadan önce uygula (FOUC önlemi) */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}})()`,
-          }}
-        />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: OCEAN_INTRO_BOOTSTRAP }} />
       </head>
       <body className="min-h-full flex flex-col">
+        <StoreContactBar />
         <CartProvider>{children}</CartProvider>
       </body>
     </html>

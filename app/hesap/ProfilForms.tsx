@@ -1,5 +1,6 @@
 "use client";
 
+import AppIcon from "@/components/AppIcon";
 import { useActionState } from "react";
 import {
   changePasswordAction,
@@ -12,9 +13,9 @@ const inputClass =
 
 function Feedback({ state }: { state: AuthState }) {
   if (state.error)
-    return <p className="text-sm text-red-400">⚠ {state.error}</p>;
+    return <p className="text-sm text-red-400"><AppIcon name="warning" /> {state.error}</p>;
   if (state.ok)
-    return <p className="text-sm text-teal-400">✓ Kaydedildi.</p>;
+    return <p className="text-sm text-teal-400"><AppIcon name="check" /> Kaydedildi.</p>;
   return null;
 }
 
@@ -105,9 +106,9 @@ export function ParolaForm() {
             name="next"
             type="password"
             required
-            minLength={6}
+            minLength={15} maxLength={128}
             autoComplete="new-password"
-            placeholder="En az 6 karakter"
+            placeholder="En az 15 karakter"
             className={inputClass}
           />
         </div>

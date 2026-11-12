@@ -41,7 +41,7 @@ export function productMatchesBrand(product: EtProduct, brand: Brand): boolean {
 export type CategoryGroup = {
   key: string;
   title: string;
-  emoji: string;
+  icon: string;
   categories: EtCategory[];
   total: number;
 };
@@ -53,7 +53,7 @@ const BRAND_CATEGORY_PREFIX = /^(eheim|sera|sobo|tropical|tropifit|sezen)\b/;
 type GroupRule = {
   key: string;
   title: string;
-  emoji: string;
+  icon: string;
   test: (lowerName: string) => boolean;
 };
 
@@ -62,49 +62,49 @@ const GROUP_RULES: GroupRule[] = [
   {
     key: "yemler",
     title: "Yemler",
-    emoji: "🦐",
+    icon: "food",
     test: (n) => /yem/.test(n) && !/yemleme makine/.test(n),
   },
   {
     key: "kaplumbaga-surungen",
     title: "Kaplumbağa & Sürüngen",
-    emoji: "🐢",
+    icon: "paw",
     test: (n) => /kaplumbağa|sürüngen|reptil|kertenkele/.test(n),
   },
   {
     key: "kemirgenler",
     title: "Kemirgenler",
-    emoji: "🐹",
+    icon: "paw",
     test: (n) => /hamster|tavşan|guinea|kemirgen/.test(n),
   },
   {
     key: "filtreler",
     title: "Filtreler",
-    emoji: "🌀",
+    icon: "filter",
     test: (n) => /filtre/.test(n),
   },
   {
     key: "motorlar-hava",
     title: "Motorlar & Hava",
-    emoji: "💨",
+    icon: "wind",
     test: (n) => /motor|hava|dalga/.test(n),
   },
   {
     key: "bitki-co2",
     title: "Bitki & CO2",
-    emoji: "🌿",
+    icon: "leaf",
     test: (n) => /bitki|gübre|co2|soil|regülatör|reaktör/.test(n),
   },
   {
     key: "dekor-taban",
     title: "Dekor & Taban",
-    emoji: "🪸",
+    icon: "coral",
     test: (n) => /dekor|kum|taban|zemin/.test(n),
   },
   {
     key: "su-bakimi",
     title: "Su Bakımı & Kimyasallar",
-    emoji: "🧪",
+    icon: "flask",
     test: (n) =>
       /kimyasal|düzenleyici|ph|test|bakteri|ilaç|vitamin|tuz|yosun|katkı|doğal/.test(
         n
@@ -113,25 +113,25 @@ const GROUP_RULES: GroupRule[] = [
   {
     key: "isitma-aydinlatma",
     title: "Isıtma & Aydınlatma",
-    emoji: "💡",
+    icon: "light",
     test: (n) => /ısıtıcı|ısıtma|aydınlatma|led|termometre/.test(n),
   },
   {
     key: "akvaryumlar",
     title: "Akvaryumlar",
-    emoji: "🐟",
+    icon: "tank",
     test: (n) => /akvaryum|fanus/.test(n),
   },
   {
     key: "baliklar-canlilar",
     title: "Balıklar & Canlılar",
-    emoji: "🐠",
+    icon: "fish",
     test: (n) => /^balık$|^canlı$|karides/.test(n),
   },
   {
     key: "aksesuar-temizlik",
     title: "Aksesuar & Temizlik",
-    emoji: "🧰",
+    icon: "tools",
     test: () => true,
   },
 ];
@@ -142,7 +142,7 @@ export function buildCategoryGroups(categories: EtCategory[]): CategoryGroup[] {
     groups.set(rule.key, {
       key: rule.key,
       title: rule.title,
-      emoji: rule.emoji,
+      icon: rule.icon,
       categories: [],
       total: 0,
     });

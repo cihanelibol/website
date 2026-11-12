@@ -1,0 +1,94 @@
+.section {
+  padding-block: 24px 0;
+}
+
+.scene {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.viewport {
+  --edge-fade: clamp(24px, 5vw, 64px);
+  overflow: hidden;
+  padding-block: 8px;
+  /* Fade the logos themselves; no bright overlay obscures the page underneath. */
+  mask-image: linear-gradient(to right, transparent, #000 var(--edge-fade), #000 calc(100% - var(--edge-fade)), transparent);
+}
+
+.track {
+  display: flex;
+  width: max-content;
+  animation: drift 42s linear infinite;
+}
+
+/* Identical groups include their trailing gap, so the loop has no jump. */
+.group {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 24px;
+  padding-right: 24px;
+}
+
+.brand {
+  display: flex;
+  flex: 0 0 144px;
+  align-items: center;
+  justify-content: center;
+  width: 144px;
+  height: 56px;
+  border-radius: 9px;
+}
+
+.brand img {
+  width: 120px;
+  height: 44px;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+
+.brand:hover {
+  background: var(--surface);
+}
+
+.brand:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.scene:hover .track {
+  animation-play-state: paused;
+}
+
+/* Keyboard navigation exposes one stationary, scrollable set of links. */
+.scene:focus-within .viewport {
+  overflow-x: auto;
+  mask-image: none;
+}
+
+.scene:focus-within .track {
+  animation: none;
+}
+
+.scene:focus-within .group[aria-hidden="true"] {
+  display: none;
+}
+
+@keyframes drift {
+  to { transform: translateX(-50%); }
+}
+
+@media (max-width: 600px) {
+  .section { padding-block: 16px 0; }
+  .group { gap: 16px; padding-right: 16px; }
+  .brand { flex-basis: 128px; width: 128px; }
+  .brand img { width: 108px; height: 40px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .group[aria-hidden="true"] { display: none; }
+  .viewport { mask-image: none; overflow-x: auto; }
+  .track { animation: none; width: 100%; }
+  .group { padding: 0; }
+}

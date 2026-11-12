@@ -1,15 +1,32 @@
 "use client";
-
-// Sağdan içeri kayarak açılan sepet çekmecesi.
-// Her zaman DOM'da durur; açılış/kapanış CSS transform geçişiyle yapılır.
-
 import Image from "next/image";
+import ProductImagePlaceholder from "@/components/ProductImagePlaceholder";
+import { containDialogFocus } from "@/components/dialog-focus";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
+import CartRail from "./CartRail";
 import { useCart } from "./CartProvider";
-import { formatPrice } from "@/lib/easytrade";
+import { formatPrice } from "@/lib/product-display";
 
-export default function CartDrawer({
+const DESKTOP_QUERY = "(min-width: 1280px)";
+function subscribeToViewport(onChange: () => void) {
+  const query = window.matchMedia(DESKTOP_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+function desktopSnapshot() { return window.matchMedia(DESKTOP_QUERY).matches; }
+function serverDesktopSnapshot() { return false; }
+
+export default function CartDrawer(props: {
+  open: boolean;
+  onOpen: () => void;
+  onClose: () => void;
+}) {
+  const desktop = useSyncExternalStore(subscribeToViewport, desktopSnapshot, serverDesktopSnapshot);
+  return desktop ? <CartRail {...props} /> : <MobileCartDrawer open={props.open} onClose={props.onClose} />;
+}
+
+function MobileCartDrawer({
   open,
   onClose,
 }: {
@@ -17,191 +34,132 @@ export default function CartDrawer({
   onClose: () => void;
 }) {
   const { items, setQty, remove, totalCount, totalAmount } = useCart();
-
-  // Açıkken Esc ile kapat + arka plan kaydırmasını kilitle
+  const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
+    const element = dialog.current;
+    if (!element) return;
+    if (open && !element.open) element.showModal();
+    if (!open && element.open) element.close();
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
+    const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
+      document.body.style.overflow = previous;
     };
-  }, [open, onClose]);
-
+  }, [open]);
   return (
-    <div
-      className={`fixed inset-0 z-[80] ${open ? "" : "pointer-events-none"}`}
-      aria-hidden={!open}
+    <dialog
+      onKeyDown={containDialogFocus}
+      ref={dialog}
+      className="store-cart"
+      aria-labelledby="cart-title"
+      onCancel={onClose}
+      onClose={onClose}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
-      {/* Karartılmış arka plan */}
-      <div
-        className={`absolute inset-0 bg-background/60 backdrop-blur-sm transition-opacity duration-300 ${
-          open ? "opacity-100" : "opacity-0"
-        }`}
-        onClick={onClose}
-      />
-
-      {/* Çekmece paneli */}
-      <aside
-        role="dialog"
-        aria-modal="true"
-        aria-label="Sepetim"
-        className={`glass-strong absolute right-0 top-0 flex h-full w-full max-w-md flex-col border-l border-cyan-400/20 shadow-2xl shadow-cyan-500/10 transition-transform duration-300 ease-out ${
-          open ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        {/* Başlık */}
-        <div className="flex items-center justify-between border-b border-cyan-400/15 px-5 py-4">
-          <h2 className="font-display text-lg font-bold">
-            🛒 Sepetim
-            {totalCount > 0 && (
-              <span className="ml-2 rounded-full bg-cyan-400/15 px-2.5 py-0.5 text-xs font-semibold text-cyan-300">
-                {totalCount} ürün
-              </span>
-            )}
+      <div className="store-cart-inner">
+        <div className="store-dialog-heading">
+          <h2 id="cart-title">
+            Sepetim{" "}
+            <span className="text-muted text-sm font-normal">
+              ({totalCount} ürün)
+            </span>
           </h2>
           <button
+            className="store-close"
             onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-cyan-400/10 hover:text-foreground"
             aria-label="Sepeti kapat"
           >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              aria-hidden
-            >
-              <line x1="5" y1="5" x2="19" y2="19" />
-              <line x1="19" y1="5" x2="5" y2="19" />
-            </svg>
+            ×
           </button>
         </div>
-
-        {/* İçerik */}
         {items.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
-            <span className="text-6xl" aria-hidden>
-              🛒
-            </span>
-            <div className="font-display text-lg font-bold">Sepetiniz Boş</div>
-            <p className="max-w-xs text-sm leading-relaxed text-muted">
-              Sepetinize henüz ürün eklemediniz. Binlerce ürün sizi bekliyor!
-            </p>
-            <Link
-              href="/urunler"
-              onClick={onClose}
-              className="mt-2 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 px-6 py-3 text-sm font-semibold text-slate-950 transition-transform hover:scale-105"
-            >
+          <div className="store-cart-empty">
+            <h3>Sepetiniz henüz boş</h3>
+            <p>Akvaryumunuz için ihtiyacınız olan ürünleri keşfedin.</p>
+            <Link href="/urunler" className="store-button" onClick={onClose}>
               Ürünleri Keşfet
             </Link>
           </div>
         ) : (
           <>
-            {/* Ürün listesi */}
-            <div className="flex-1 space-y-3 overflow-y-auto overscroll-contain p-4">
+            <div className="store-cart-items">
               {items.map((item) => (
-                <div
-                  key={item.id}
-                  className="glass flex gap-3 rounded-2xl p-3"
-                >
+                <div key={item.id} className="store-cart-item">
                   <Link
+                    className="store-cart-thumb"
                     href={`/urunler/${item.id}`}
                     onClick={onClose}
-                    className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/95"
                   >
                     {item.image ? (
                       <Image
                         src={item.image}
                         alt={item.name}
                         fill
-                        sizes="64px"
-                        className="object-contain p-1"
+                        sizes="72px"
                         unoptimized
                       />
                     ) : (
-                      <span className="text-2xl" aria-hidden>
-                        {item.emoji}
-                      </span>
+                      <ProductImagePlaceholder compact />
                     )}
                   </Link>
-
-                  <div className="min-w-0 flex-1">
-                    <Link
-                      href={`/urunler/${item.id}`}
-                      onClick={onClose}
-                      className="line-clamp-2 text-sm font-medium leading-snug hover:text-cyan-200"
-                    >
+                  <div className="store-cart-item-info">
+                    <Link href={`/urunler/${item.id}`} onClick={onClose}>
                       {item.name}
                     </Link>
-                    <div className="mt-1.5 flex items-center justify-between gap-2">
-                      <div className="glass flex items-center rounded-lg">
+                    <div>
+                      <div className="store-quantity">
                         <button
                           onClick={() => setQty(item.id, item.qty - 1)}
-                          className="px-2.5 py-1 text-sm font-bold text-cyan-300 hover:text-cyan-100"
-                          aria-label="Azalt"
+                          aria-label={`${item.name} adedini azalt`}
                         >
                           −
                         </button>
-                        <span className="min-w-[1.75rem] text-center text-sm font-semibold">
-                          {item.qty}
-                        </span>
+                        <span aria-live="polite">{item.qty}</span>
                         <button
                           onClick={() => setQty(item.id, item.qty + 1)}
-                          className="px-2.5 py-1 text-sm font-bold text-cyan-300 hover:text-cyan-100"
-                          aria-label="Artır"
+                          disabled={item.qty >= item.maxStock}
+                          aria-label={`${item.name} adedini artır`}
                         >
                           +
                         </button>
                       </div>
-                      <span className="font-display text-sm font-bold text-gradient">
+                      <strong className="text-sm">
                         {formatPrice(item.price * item.qty)}
-                      </span>
-                      <button
-                        onClick={() => remove(item.id)}
-                        className="rounded-lg p-1.5 text-muted transition-colors hover:bg-red-400/10 hover:text-red-300"
-                        aria-label="Sepetten çıkar"
-                      >
-                        🗑
-                      </button>
+                      </strong>
                     </div>
+                    <button
+                      className="store-cart-remove"
+                      onClick={() => remove(item.id)}
+                      aria-label={`${item.name} ürününü sepetten kaldır`}
+                    >
+                      Kaldır
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
-
-            {/* Alt özet */}
-            <div className="border-t border-cyan-400/15 p-5">
-              <div className="mb-4 flex items-center justify-between">
-                <span className="text-sm text-muted">Toplam</span>
-                <span className="font-display text-xl font-bold text-gradient">
-                  {formatPrice(totalAmount)}
-                </span>
+            <div className="store-cart-total">
+              <div>
+                <span>Ürünler toplamı</span>
+                <strong aria-live="polite">{formatPrice(totalAmount)}</strong>
               </div>
-              <Link
-                href="/sepet"
-                onClick={onClose}
-                className="glow block w-full rounded-2xl bg-gradient-to-r from-cyan-500 to-teal-500 px-6 py-3.5 text-center font-semibold text-slate-950 transition-transform hover:scale-[1.02]"
-              >
-                Siparişi Tamamla
+              <p>
+                KDV dahildir. Varsa kargo ücreti ve teslimat koşulları sipariş
+                onayında bildirilir.
+              </p>
+              <Link href="/sepet" onClick={onClose} className="store-button">
+                Sepeti Gör ve Devam Et
               </Link>
-              <button
-                onClick={onClose}
-                className="mt-2.5 w-full rounded-2xl px-6 py-2.5 text-center text-sm font-medium text-muted transition-colors hover:text-foreground"
-              >
-                Alışverişe Devam Et
+              <button className="store-cart-continue" onClick={onClose}>
+                Alışverişe devam et
               </button>
             </div>
           </>
         )}
-      </aside>
-    </div>
+      </div>
+    </dialog>
   );
 }

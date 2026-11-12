@@ -1,13 +1,15 @@
+import AppIcon from "@/components/AppIcon";
+import { requireAdmin } from "@/lib/auth";
 import { getAllOrders } from "@/lib/orders";
-import { readJson } from "@/lib/storage";
-import type { User } from "@/lib/auth";
+import { getAdminMembers } from "@/lib/admin-data";
 import { emailConfigured } from "@/lib/email";
 import OrderCard from "./OrderCard";
 
 export default async function AdminSiparislerPage() {
+  await requireAdmin();
   const [orders, users] = await Promise.all([
     getAllOrders(),
-    readJson<User[]>("users.json", []),
+    getAdminMembers(),
   ]);
 
   const active = orders.filter(
@@ -18,10 +20,10 @@ export default async function AdminSiparislerPage() {
   const shipped = orders.filter((o) => o.status === "kargoda");
 
   const stats = [
-    { label: "Toplam Sipariş", value: orders.length, emoji: "📦" },
-    { label: "Aktif Sipariş", value: active.length, emoji: "⏳" },
-    { label: "Kargoda", value: shipped.length, emoji: "🚚" },
-    { label: "Üye Sayısı", value: users.length, emoji: "👥" },
+    { label: "Toplam Sipariş", value: orders.length, icon: "package" },
+    { label: "Aktif Sipariş", value: active.length, icon: "clock" },
+    { label: "Kargoda", value: shipped.length, icon: "truck" },
+    { label: "Üye Sayısı", value: users.length, icon: "users" },
   ];
 
   return (
@@ -30,8 +32,8 @@ export default async function AdminSiparislerPage() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map((s) => (
           <div key={s.label} className="glass rounded-2xl p-5">
-            <div className="text-2xl">{s.emoji}</div>
-            <div className="font-display mt-1 text-2xl font-bold text-gradient">
+            <div className="text-2xl"><AppIcon name={s.icon ?? "book"} /></div>
+            <div className="font-display mt-1 text-2xl font-bold text-accent">
               {s.value}
             </div>
             <div className="text-xs text-muted">{s.label}</div>
@@ -41,7 +43,7 @@ export default async function AdminSiparislerPage() {
 
       {!emailConfigured() && (
         <div className="rounded-2xl border border-amber-400/30 bg-amber-400/10 px-5 py-3.5 text-sm leading-relaxed text-amber-300">
-          ⚠ <strong>E-posta gönderimi kapalı.</strong> resend.com'dan alacağınız
+          <AppIcon name="warning" /> <strong>E-posta gönderimi kapalı.</strong> resend.com&apos;dan alacağınız
           API anahtarını <code>RESEND_API_KEY</code> olarak tanımlayınca hoş
           geldin ve sipariş bildirimleri otomatik gönderilmeye başlar.
         </div>

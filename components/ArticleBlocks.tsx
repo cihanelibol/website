@@ -1,22 +1,23 @@
+import AppIcon from "@/components/AppIcon";
 import type { Block } from "@/lib/rehber";
 
 const calloutStyles = {
   tip: {
     border: "border-emerald-400/30",
     bg: "bg-emerald-500/10",
-    icon: "💡",
+    icon: "light",
     label: "text-emerald-300",
   },
   warning: {
     border: "border-amber-400/30",
     bg: "bg-amber-500/10",
-    icon: "⚠️",
+    icon: "warning",
     label: "text-amber-300",
   },
   info: {
     border: "border-cyan-400/30",
     bg: "bg-cyan-500/10",
-    icon: "ℹ️",
+    icon: "info",
     label: "text-cyan-300",
   },
 } as const;
@@ -95,7 +96,7 @@ export default function ArticleBlocks({ blocks }: { blocks: Block[] }) {
                 className={`rounded-2xl border ${s.border} ${s.bg} p-5`}
               >
                 <div className={`mb-1.5 flex items-center gap-2 font-semibold ${s.label}`}>
-                  <span aria-hidden>{s.icon}</span>
+                  <span aria-hidden><AppIcon name={s.icon ?? "book"} /></span>
                   {block.title}
                 </div>
                 <p className="leading-relaxed text-muted">{block.text}</p>

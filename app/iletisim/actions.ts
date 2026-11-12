@@ -1,50 +1,21 @@
-"use server";
-
-import { randomUUID } from "crypto";
-import { readJson, writeJson } from "@/lib/storage";
-
+﻿"use server";
+import { randomUUID } from "node:crypto";
+import { updateJson } from "@/lib/storage";
+import { guardRate, textField, emailField, safeError, InputError } from "@/lib/security";
 export type ContactState = { error?: string; success?: boolean };
-
-type ContactMessage = {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  subject: string;
-  message: string;
-  createdAt: string;
-};
-
-const MESSAGES_FILE = "messages.json";
-
-export async function contactAction(
-  _prev: ContactState,
-  formData: FormData
-): Promise<ContactState> {
-  const name = String(formData.get("name") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim();
-  const phone = String(formData.get("phone") ?? "").trim();
-  const subject = String(formData.get("subject") ?? "").trim();
-  const message = String(formData.get("message") ?? "").trim();
-
-  if (!name) return { error: "Ad Soyad zorunludur." };
-  if (!email && !phone)
-    return { error: "Size dönebilmemiz için e-posta veya telefon bırakın." };
-  if (!message) return { error: "Mesajınızı yazmayı unutmayın." };
-  if (message.length > 2000)
-    return { error: "Mesaj en fazla 2000 karakter olabilir." };
-
-  const messages = await readJson<ContactMessage[]>(MESSAGES_FILE, []);
-  messages.push({
-    id: randomUUID(),
-    name,
-    email,
-    phone,
-    subject,
-    message,
-    createdAt: new Date().toISOString(),
-  });
-  await writeJson(MESSAGES_FILE, messages);
-
-  return { success: true };
+type ContactMessage = { id: string; name: string; email: string; phone: string; subject: string; message: string; createdAt: string };
+export async function contactAction(_prev: ContactState, data: FormData): Promise<ContactState> {
+  try {
+    await guardRate("contact", 3, 3600);
+    const email = textField(data.get("email") ?? "", 254);
+    const phone = textField(data.get("phone") ?? "", 32);
+    if (!email && !phone) throw new InputError("E-posta veya telefon gerekli.");
+    const entry: ContactMessage = { id: randomUUID(), name: textField(data.get("name"), 60, 2), email: email ? emailField(email) : "", phone, subject: textField(data.get("subject") ?? "", 120), message: textField(data.get("message"), 2000, 1), createdAt: new Date().toISOString() };
+    await updateJson<ContactMessage[], void>("messages.json", [], current => {
+      const retained = current.filter(m => Date.parse(m.createdAt) > Date.now() - 90 * 86400_000);
+      if (retained.length >= 10000) throw new InputError("Mesaj kapasitesi dolu. Mağazayı arayabilirsiniz.");
+      return { value: [...retained, entry], result: undefined };
+    });
+    return { success: true };
+  } catch (error) { return { error: safeError(error) }; }
 }

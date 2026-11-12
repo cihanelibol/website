@@ -1,5 +1,6 @@
+import AppIcon from "@/components/AppIcon";
 import { redirect } from "next/navigation";
-import { getProfile } from "./actions";
+import { getProfile } from "@/lib/auth";
 import { ParolaForm, ProfilForm } from "./ProfilForms";
 
 export default async function ProfilPage() {
@@ -10,7 +11,7 @@ export default async function ProfilPage() {
     <div className="space-y-6">
       <section className="glass rounded-3xl p-6">
         <h2 className="font-display mb-5 text-lg font-bold">
-          👤 Profil Bilgilerim
+          <AppIcon name="user" /> Profil Bilgilerim
         </h2>
         <ProfilForm
           name={user.name}
@@ -21,14 +22,14 @@ export default async function ProfilPage() {
 
       <section className="glass rounded-3xl p-6">
         <h2 className="font-display mb-5 text-lg font-bold">
-          🔒 Parola Değiştir
+          <AppIcon name="lock" /> Parola Değiştir
         </h2>
         <ParolaForm />
       </section>
 
       <section className="glass rounded-3xl p-6 text-sm text-muted">
         <h2 className="font-display mb-3 text-lg font-bold text-foreground">
-          📄 Üyelik Bilgileri
+          <AppIcon name="file" /> Üyelik Bilgileri
         </h2>
         <p>
           Üyelik tarihi:{" "}

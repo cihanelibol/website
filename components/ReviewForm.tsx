@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import AppIcon from "@/components/AppIcon";
+import { useActionState, useEffect, useRef, useState } from "react";
 import type { ReviewState } from "@/app/urunler/[id]/actions";
 
 export default function ReviewForm({
@@ -13,12 +14,13 @@ export default function ReviewForm({
     {}
   );
   const [rating, setRating] = useState(0);
-  const [hover, setHover] = useState(0);
+  const successRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (state.ok) successRef.current?.focus(); }, [state.ok]);
 
   if (state.ok) {
     return (
-      <div className="rounded-2xl border border-teal-400/30 bg-teal-400/10 px-5 py-4 text-sm">
-        ✓ Yorumunuz kaydedildi, teşekkürler!
+      <div ref={successRef} tabIndex={-1} role="status" className="rounded-2xl border border-teal-400/30 bg-teal-400/10 px-5 py-4 text-sm">
+        <AppIcon name="check" /> Yorumunuz kaydedildi. İncelemeden sonra yayımlanacak, teşekkürler!
       </div>
     );
   }
@@ -26,39 +28,26 @@ export default function ReviewForm({
   return (
     <form action={formAction} className="space-y-4">
       <div>
-        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted">
-          Puanınız
-        </label>
-        <div className="flex items-center gap-1">
+        <p id="review-rating-label" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted">Puanınız</p>
+        <div role="radiogroup" aria-labelledby="review-rating-label" className="flex flex-wrap items-center gap-1">
           {[1, 2, 3, 4, 5].map((star) => (
-            <button
-              key={star}
-              type="button"
-              onClick={() => setRating(star)}
-              onMouseEnter={() => setHover(star)}
-              onMouseLeave={() => setHover(0)}
-              className="text-2xl transition-transform hover:scale-125"
-              aria-label={`${star} yıldız`}
-            >
-              <span
-                className={
-                  star <= (hover || rating) ? "" : "opacity-25 grayscale"
-                }
-              >
-                ⭐
-              </span>
-            </button>
+            <label key={star} className="store-rating-option">
+              <input type="radio" name="rating" value={star} checked={rating === star} onChange={() => setRating(star)} aria-label={`${star} yıldız`} required />
+              <svg viewBox="0 0 24 24" aria-hidden="true" data-filled={star <= rating}><path d="m12 3 2.8 5.7 6.3.9-4.6 4.4 1.1 6.3L12 17.3l-5.6 3 1.1-6.3L3 9.6l6.2-.9Z" /></svg>
+            </label>
           ))}
-          <input type="hidden" name="rating" value={rating} />
+          <span className="sr-only" role="status">{rating ? `Seçiminiz: ${rating} yıldız` : "Puan seçin"}</span>
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted">
+          <label htmlFor="review-name" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted">
             Adınız
           </label>
           <input
+            id="review-name"
+            autoComplete="name"
             name="name"
             required
             maxLength={60}
@@ -69,21 +58,22 @@ export default function ReviewForm({
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted">
+        <label htmlFor="review-comment" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted">
           Yorumunuz
         </label>
         <textarea
+          id="review-comment"
           name="comment"
           required
           rows={3}
           maxLength={1000}
           placeholder="Ürün hakkındaki deneyiminizi paylaşın..."
-          className="w-full rounded-xl border border-cyan-400/15 bg-cyan-400/5 px-3.5 py-2.5 text-sm outline-none transition-colors placeholder:text-muted focus:border-cyan-400/50"
+          className="w-full rounded-xl border border-cyan-400/15 bg-cyan-400/5 px-3.5 py-2.5 text-lg outline-none transition-colors placeholder:text-muted focus:border-cyan-400/50"
         />
       </div>
 
       {state.error && (
-        <p className="text-sm text-amber-400">⚠ {state.error}</p>
+        <p role="alert" className="text-sm text-amber-400"><AppIcon name="warning" /> {state.error}</p>
       )}
 
       <button

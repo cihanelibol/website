@@ -1,3 +1,4 @@
+import AppIcon from "@/components/AppIcon";
 import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -15,19 +16,19 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const admin = await getAdminUser();
-  if (!admin) redirect("/giris");
+  if (!admin) redirect("/hesap/guvenlik");
 
   return (
     <>
       <Navbar />
-      <main className="mx-auto min-h-svh w-full max-w-7xl px-4 pb-20 pt-24 sm:px-6 lg:px-8">
+      <main id="main-content" className="store-container min-h-svh pb-20 pt-24">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="text-xs font-semibold uppercase tracking-wider text-cyan-300">
               Gri Akvaryum
             </div>
             <h1 className="font-display text-2xl font-bold tracking-tight sm:text-4xl">
-              ⚙️ Yönetim Paneli
+              <AppIcon name="settings" /> Yönetim Paneli
             </h1>
           </div>
           <span className="glass rounded-full px-4 py-2 text-xs text-muted">

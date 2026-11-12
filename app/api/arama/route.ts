@@ -1,5 +1,6 @@
+import { guardRate, InputError } from "@/lib/security";
 import { NextRequest, NextResponse } from "next/server";
-import { getProducts, primaryImage, productEmoji } from "@/lib/easytrade";
+import { getProducts, primaryImage, productIcon } from "@/lib/easytrade";
 import { articles, categories, type Article, type Block } from "@/lib/rehber";
 
 export type SearchProductHit = {
@@ -8,7 +9,7 @@ export type SearchProductHit = {
   sku: string | null;
   price: number;
   image: string | null;
-  emoji: string;
+  icon: string;
   inStock: boolean;
 };
 
@@ -16,7 +17,7 @@ export type SearchArticleHit = {
   slug: string;
   title: string;
   description: string;
-  emoji: string;
+  icon: string;
   category: string;
   minutes: number;
 };
@@ -95,7 +96,11 @@ function searchArticles(query: string): Article[] {
 }
 
 export async function GET(request: NextRequest) {
+  try { await guardRate("search", 60); } catch (error) {
+    return NextResponse.json({ error: error instanceof InputError ? "Too many requests" : "Search temporarily unavailable" }, { status: error instanceof InputError ? 429 : 503, headers: { "Cache-Control": "no-store" } });
+  }
   const q = request.nextUrl.searchParams.get("q")?.trim() ?? "";
+  if (q.length > 120) return NextResponse.json({ error: "Query too long" }, { status: 400 });
   if (q.length < 2) {
     return NextResponse.json<SearchResponse>({
       products: [],
@@ -104,7 +109,7 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  const categoryEmoji = new Map(categories.map((c) => [c.slug, c.emoji]));
+  const categoryIcon = new Map(categories.map((c) => [c.slug, c.icon]));
 
   // Ürün araması dış API'ye gider - hata olursa rehber sonuçları yine dönsün
   const productsPromise = getProducts({ search: q })
@@ -115,7 +120,7 @@ export async function GET(request: NextRequest) {
         sku: p.sku,
         price: p.price_with_tax,
         image: primaryImage(p),
-        emoji: productEmoji(p),
+        icon: productIcon(p),
         inStock: p.stock_quantity > 0,
       })),
       total: res.pagination.total,
@@ -134,7 +139,7 @@ export async function GET(request: NextRequest) {
       slug: a.slug,
       title: a.title,
       description: a.description,
-      emoji: categoryEmoji.get(a.category) ?? "📖",
+      icon: categoryIcon.get(a.category) ?? "book",
       category: a.category,
       minutes: a.minutes,
     })),

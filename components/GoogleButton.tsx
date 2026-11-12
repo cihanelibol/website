@@ -16,12 +16,12 @@ export default function GoogleButton() {
         </svg>
         Google ile devam et
       </a>
-      <p className="mt-2 text-center text-[11px] leading-relaxed text-muted">
+      <p className="mt-2 text-center text-xs leading-relaxed text-muted">
         Google ile devam ederek{" "}
         <Link
           href="/sozlesme/uyelik-sozlesmesi"
           target="_blank"
-          className="text-cyan-300 underline-offset-2 hover:underline"
+          className="text-cyan-300 underline underline-offset-2 hover:decoration-2"
         >
           Üyelik Sözleşmesi
         </Link>
@@ -29,7 +29,7 @@ export default function GoogleButton() {
         <Link
           href="/sozlesme/kvkk-aydinlatma"
           target="_blank"
-          className="text-cyan-300 underline-offset-2 hover:underline"
+          className="text-cyan-300 underline underline-offset-2 hover:decoration-2"
         >
           KVKK Aydınlatma Metni
         </Link>

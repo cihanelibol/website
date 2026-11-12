@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "schedules": {
+    "order-notifications": {
+      "schedule": "*/15 * * * *",
+      "path": "/api/internal/notifications",
+      "requestMethod": "POST"
+    }
+  }
+}

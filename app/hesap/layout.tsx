@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { getSessionUser, getUserById, isAdminEmail } from "@/lib/auth";
+import { getSessionUser, getAdminUser } from "@/lib/auth";
 import HesapNav from "./HesapNav";
 
 export const metadata = {
@@ -16,13 +16,13 @@ export default async function HesapLayout({
   const session = await getSessionUser();
   if (!session) redirect("/giris");
 
-  const user = await getUserById(session.uid);
-  const isAdmin = Boolean(user && isAdminEmail(user.email));
+  const user = await getAdminUser();
+  const isAdmin = Boolean(user);
 
   return (
     <>
       <Navbar />
-      <main className="mx-auto min-h-svh w-full max-w-7xl px-4 pb-20 pt-24 sm:px-6 lg:px-8">
+      <main id="main-content" className="store-container min-h-svh pb-20 pt-24">
         <h1 className="font-display mb-8 text-2xl font-bold tracking-tight sm:text-4xl">
           Hesabım
         </h1>

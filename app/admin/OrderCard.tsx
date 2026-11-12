@@ -1,5 +1,6 @@
 "use client";
 
+import AppIcon from "@/components/AppIcon";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import {
@@ -38,7 +39,7 @@ export default function OrderCard({ order }: { order: OrderRecord }) {
   const [cargoTakipNo, setCargoTakipNo] = useState(order.cargo?.takipNo ?? "");
   const [note, setNote] = useState("");
   const [notify, setNotify] = useState(true);
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ ok: boolean; message: string } | null>(null);
   const [pending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
 
@@ -53,11 +54,9 @@ export default function OrderCard({ order }: { order: OrderRecord }) {
         note,
         notifyCustomer: notify,
       });
-      setFeedback(
-        result.ok
-          ? "✓ Güncellendi" + (notify ? " ve müşteriye e-posta gönderildi" : "")
-          : `⚠ ${result.error}`
-      );
+      setFeedback({ ok: result.ok === true, message: result.ok
+          ? "Güncellendi" + (notify && result.emailQueued ? "; bildirim kuyruğa kaydedildi" : "")
+          : `${result.error}` });
       if (result.ok) setNote("");
     });
   };
@@ -91,7 +90,7 @@ export default function OrderCard({ order }: { order: OrderRecord }) {
           </div>
         </div>
         <div className="text-right">
-          <div className="font-display text-lg font-bold text-gradient">
+          <div className="font-display text-lg font-bold text-accent">
             {formatTL(order.total)}
           </div>
           <button
@@ -104,16 +103,18 @@ export default function OrderCard({ order }: { order: OrderRecord }) {
       </div>
 
       {/* Müşteri özeti */}
+      {order.submission && order.submission !== "sent" && <p role="status" className="mt-3 text-amber-300">Dış sipariş aktarımı kontrol bekliyor. Durumu ilerletmeden önce Uzlaştırma / Tahsilat ekranını kullanın.</p>}
+      <p className="mt-3 text-sm">Tahsilat: {order.paymentStatus === "odendi" ? "Ödendi" : "Beklemede"}</p>
       <div className="mt-3 grid gap-1 text-sm text-muted sm:grid-cols-2">
         <span>
-          👤 <strong className="text-foreground">{order.customerName}</strong>{" "}
+          <AppIcon name="user" /> <strong className="text-foreground">{order.customerName}</strong>{" "}
           — {order.phone}
         </span>
-        <span className="truncate">✉️ {order.email}</span>
-        <span className="sm:col-span-2">📍 {order.addressText}</span>
+        <span className="truncate"><AppIcon name="mail" /> {order.email}</span>
+        <span className="sm:col-span-2"><AppIcon name="pin" /> {order.addressText}</span>
         {order.cargo?.firma && (
           <span className="sm:col-span-2">
-            🚚 {order.cargo.firma}
+            <AppIcon name="truck" /> {order.cargo.firma}
             {order.cargo.takipNo && ` — Takip: ${order.cargo.takipNo}`}
           </span>
         )}
@@ -240,10 +241,10 @@ export default function OrderCard({ order }: { order: OrderRecord }) {
               {feedback && (
                 <span
                   className={`text-xs ${
-                    feedback.startsWith("✓") ? "text-teal-400" : "text-red-400"
+                    feedback.ok ? "text-teal-400" : "text-red-400"
                   }`}
                 >
-                  {feedback}
+                  <AppIcon name={feedback.ok ? "check" : "warning"} /> {feedback.message}
                 </span>
               )}
               <button

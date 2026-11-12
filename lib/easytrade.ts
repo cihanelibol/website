@@ -1,3 +1,8 @@
+import "server-only";
+import { boundedJson } from "./http";
+import { productsResponse, categoriesResponse, orderReceipt } from "./catalogue-schema";
+import { withProductImages } from "./product-images";
+export { formatPrice, primaryImage, productIcon } from "./product-display";
 // EasyTrade Dijital Katalog API istemcisi.
 // Görsel URL'leri 5 dakikalık imzalı linkler olduğu için önbellek süresi 4 dakika tutulur.
 
@@ -48,24 +53,26 @@ export type ProductsResponse = {
 
 function catalogUrl(path: string): string {
   const slug = process.env.EASYTRADE_CATALOG_SLUG;
-  if (!slug) {
+  if (!slug || !/^[a-zA-Z0-9_-]+$/.test(slug)) {
     throw new Error("EASYTRADE_CATALOG_SLUG ortam değişkeni tanımlı değil");
   }
   return `${BASE_URL}/${slug}${path}`;
 }
 
-async function etFetch<T>(path: string): Promise<T> {
+async function etFetch(path: string, fresh = false): Promise<unknown> {
   const res = await fetch(catalogUrl(path), {
     headers: {
       Accept: "application/json",
       "X-Requested-With": "XMLHttpRequest",
     },
-    next: { revalidate: REVALIDATE_SECONDS },
+    ...(fresh ? { cache: "no-store" as const } : { next: { revalidate: REVALIDATE_SECONDS } }),
+    signal: AbortSignal.timeout(10_000),
+    redirect: "error",
   });
   if (!res.ok) {
     throw new Error(`EasyTrade katalog isteği başarısız: ${res.status} (${path})`);
   }
-  return res.json() as Promise<T>;
+  return boundedJson(res);
 }
 
 export type SortOption = "default" | "price_asc" | "price_desc";
@@ -81,18 +88,20 @@ export async function getProducts(opts: {
   if (opts.category) params.set("category", String(opts.category));
   if (opts.search) params.set("search", opts.search);
   if (opts.sort && opts.sort !== "default") params.set("sort", opts.sort);
-  return etFetch<ProductsResponse>(`/products?${params.toString()}`);
+  const response = productsResponse(await etFetch(`/products?${params.toString()}`));
+  return { ...response, data: response.data.map(product => withProductImages(product)) };
 }
 
 // Tüm katalog: filtreleme/sayfalama lokalde yapılacağı için bütün sayfalar çekilir.
 // Her sayfa URL'i Next fetch cache'inde 4 dk tutulur; sonraki isteklerde ağa çıkılmaz.
 const ALL_PER_PAGE = 48;
 
-export async function getAllProducts(): Promise<EtProduct[]> {
-  const first = await etFetch<ProductsResponse>(
-    `/products?per_page=${ALL_PER_PAGE}&page=1`
-  );
+export async function getAllProducts(fresh = false): Promise<EtProduct[]> {
+  const first = productsResponse(await etFetch(
+    `/products?per_page=${ALL_PER_PAGE}&page=1`, fresh
+  ));
   const lastPage = first.pagination.last_page;
+  if (!Number.isSafeInteger(lastPage) || lastPage < 1 || lastPage > 200 || !Array.isArray(first.data)) throw new Error("Invalid catalogue response");
   const all: EtProduct[][] = [first.data];
 
   const CHUNK = 10;
@@ -101,19 +110,19 @@ export async function getAllProducts(): Promise<EtProduct[]> {
     for (let p = start; p < start + CHUNK && p <= lastPage; p++) nums.push(p);
     const results = await Promise.all(
       nums.map((p) =>
-        etFetch<ProductsResponse>(`/products?per_page=${ALL_PER_PAGE}&page=${p}`)
+        etFetch(`/products?per_page=${ALL_PER_PAGE}&page=${p}`, fresh).then(productsResponse)
       )
     );
     for (const r of results) all.push(r.data);
   }
   // Sayfalar arası veri kayarsa oluşabilecek mükerrerleri ele
   const seen = new Set<number>();
-  return all.flat().filter((p) => !seen.has(p.id) && seen.add(p.id));
+  return all.flat().filter((p) => !seen.has(p.id) && seen.add(p.id))
+    .map(product => withProductImages(product));
 }
 
 export async function getCategories(): Promise<EtCategory[]> {
-  const res = await etFetch<{ data: EtCategory[] }>("/categories");
-  return res.data;
+  return categoriesResponse(await etFetch("/categories"));
 }
 
 export async function getProduct(id: number): Promise<EtProduct | undefined> {
@@ -150,11 +159,14 @@ export type OrderPayload = {
   total_amount: number;
 };
 
-export async function postOrder(payload: OrderPayload): Promise<void> {
+export async function postOrder(payload: OrderPayload) {
+  if (process.env.NODE_ENV === "development") throw new Error("External order writes are disabled in development");
   // Laravel CSRF koruması: önce katalog sayfasından XSRF çerezi alınır,
   // sonra sipariş bu çerez ve X-XSRF-TOKEN başlığıyla gönderilir.
   const page = await fetch(catalogUrl(""), {
     cache: "no-store",
+    signal: AbortSignal.timeout(10_000),
+    redirect: "error",
     headers: { Accept: "text/html" },
   });
   const setCookies = page.headers.getSetCookie();
@@ -175,53 +187,11 @@ export async function postOrder(payload: OrderPayload): Promise<void> {
     },
     body: JSON.stringify(payload),
     cache: "no-store",
-    redirect: "follow",
+    redirect: "error",
+    signal: AbortSignal.timeout(15_000),
   });
   if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`Sipariş gönderilemedi: ${res.status} ${text.slice(0, 300)}`);
+    throw new Error(`Order service rejected request (${res.status})`);
   }
-}
-
-export function formatPrice(price: number): string {
-  return new Intl.NumberFormat("tr-TR", {
-    style: "currency",
-    currency: "TRY",
-    maximumFractionDigits: 2,
-    minimumFractionDigits: 0,
-  }).format(price);
-}
-
-// Görseli olmayan ürünler için kategori/isim bazlı emoji seçimi
-export function productEmoji(product: EtProduct): string {
-  const haystack = [product.name, ...product.categories.map((c) => c.name)]
-    .join(" ")
-    .toLocaleLowerCase("tr-TR");
-
-  const rules: [RegExp, string][] = [
-    [/yem|vitamin|besin/, "🦐"],
-    [/filtre|motor|pompa|hava/, "⚙️"],
-    [/ısıtıcı|termostat|termometre/, "🌡️"],
-    [/led|aydınlatma|lamba|armatür/, "💡"],
-    [/bitki|moss|tohum/, "🌿"],
-    [/dekor|taban|kum|çakıl|kaya|mercan/, "🪸"],
-    [/akvaryum|fanus|tank/, "🐟"],
-    [/kedi/, "🐱"],
-    [/köpek/, "🐶"],
-    [/kuş/, "🦜"],
-    [/balık|tetra|lepistes|beta|japon|moli|cichlid|ciklet/, "🐠"],
-    [/ilaç|bakım|su düzenleyici|şartlandırıcı/, "🧪"],
-    [/kescher|kepçe|sifon|hortum/, "🪣"],
-  ];
-
-  for (const [pattern, emoji] of rules) {
-    if (pattern.test(haystack)) return emoji;
-  }
-  return "🐠";
-}
-
-export function primaryImage(product: EtProduct): string | null {
-  if (product.images.length === 0) return null;
-  const primary = product.images.find((i) => i.is_primary);
-  return (primary ?? product.images[0]).url;
+  return orderReceipt(await boundedJson(res, 128_000), payload.total_amount);
 }

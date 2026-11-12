@@ -1,6 +1,8 @@
 "use client";
 
+import AppIcon from "@/components/AppIcon";
 import Link from "next/link";
+import { CONTACT } from "@/lib/site";
 import { useActionState } from "react";
 import { loginAction, type AuthState } from "@/app/hesap/actions";
 
@@ -16,10 +18,12 @@ export default function GirisForm() {
   return (
     <form action={formAction} className="space-y-4">
       <div>
-        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted">
+        <label htmlFor="login-email" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted">
           E-posta
         </label>
         <input
+          id="login-email"
+          autoComplete="email"
           name="email"
           type="email"
           required
@@ -28,19 +32,23 @@ export default function GirisForm() {
         />
       </div>
       <div>
-        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted">
+        <label htmlFor="login-password" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted">
           Parola
         </label>
         <input
+          id="login-password"
+          autoComplete="current-password"
           name="password"
           type="password"
+          maxLength={128}
           required
           placeholder="••••••••"
           className={inputClass}
         />
       </div>
 
-      {state.error && <p className="text-sm text-amber-400">⚠ {state.error}</p>}
+      <Link href="/parola-yenile" className="inline-block py-2 text-sm text-cyan-300 underline underline-offset-2">Parolamı unuttum / hesabımı doğrula</Link>
+      {state.error && <p role="alert" className="text-sm text-amber-400"><AppIcon name="warning" /> {state.error}</p>}
 
       <button
         disabled={pending}
@@ -49,6 +57,12 @@ export default function GirisForm() {
         {pending ? "Giriş yapılıyor..." : "Giriş Yap"}
       </button>
 
+      <details className="store-account-help">
+        <summary>Hesabınıza erişmek için destek alın</summary>
+        <p>Hesabınıza erişemiyorsanız mağazamızdan hesap desteği alın. Parolanızı veya doğrulama kodunuzu paylaşmayın.</p>
+        <a href={`${CONTACT.whatsappHref}?text=${encodeURIComponent("Hesabıma giriş yapamıyorum. Hesap desteği almak istiyorum.")}`} target="_blank" rel="noopener noreferrer">WhatsApp ile hesap desteği</a>
+        <a href={CONTACT.phoneHref}>Mağazayı arayın: {CONTACT.phone}</a>
+      </details>
       <p className="text-center text-sm text-muted">
         Hesabınız yok mu?{" "}
         <Link href="/kayit" className="font-semibold text-cyan-300 hover:text-cyan-200">

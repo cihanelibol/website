@@ -1,3 +1,4 @@
+import AppIcon from "@/components/AppIcon";
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth";
 import { getAddresses } from "@/lib/addresses";
@@ -14,7 +15,7 @@ export default async function AdreslerPage() {
     <div className="space-y-6">
       <section className="glass rounded-3xl p-6">
         <h2 className="font-display mb-5 text-lg font-bold">
-          📍 Kayıtlı Adreslerim
+          <AppIcon name="pin" /> Kayıtlı Adreslerim
         </h2>
         {addresses.length === 0 ? (
           <p className="text-sm text-muted">
@@ -34,7 +35,7 @@ export default async function AdreslerPage() {
                       className="rounded-lg p-1.5 text-xs text-muted transition-colors hover:bg-red-400/10 hover:text-red-300"
                       aria-label="Adresi sil"
                     >
-                      🗑 Sil
+                      <AppIcon name="trash" /> Sil
                     </button>
                   </form>
                 </div>
@@ -55,7 +56,7 @@ export default async function AdreslerPage() {
 
       <section className="glass rounded-3xl p-6">
         <h2 className="font-display mb-5 text-lg font-bold">
-          ➕ Yeni Adres Ekle
+          <AppIcon name="plus" /> Yeni Adres Ekle
         </h2>
         <AdresForm />
       </section>

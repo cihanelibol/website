@@ -12,42 +12,42 @@ export const categories: Category[] = [
   {
     slug: "baslangic",
     title: "Başlangıç Rehberi",
-    emoji: "🐟",
+    icon: "tank",
     description:
       "İlk akvaryumunuzu kurun: tank seçimi, döngü süreci, ekipmanlar ve ilk balıklar.",
   },
   {
     slug: "tatli-su",
     title: "Tatlı Su Akvaryumu",
-    emoji: "🌿",
+    icon: "leaf",
     description:
       "Bakım rutini, temizlik, bitkili akvaryum, yosun kontrolü ve omurgasızlar.",
   },
   {
     slug: "tuzlu-su",
     title: "Tuzlu Su & Resif",
-    emoji: "🪸",
+    icon: "coral",
     description:
       "Deniz akvaryumu kurulumu, tuz ve yoğunluk, canlı kaya, mercanlar ve skimmer.",
   },
   {
     slug: "su-kimyasi",
     title: "Su Kimyası",
-    emoji: "💧",
+    icon: "drop",
     description:
       "pH, sertlik, azot döngüsü, su testleri ve su katkı ürünlerinin doğru kullanımı.",
   },
   {
     slug: "saglik",
     title: "Balık Sağlığı & Yemleme",
-    emoji: "🧪",
+    icon: "flask",
     description:
       "Hastalık teşhis ve tedavisi, karantina, stres yönetimi ve doğru beslenme.",
   },
   {
     slug: "ekipman",
     title: "Ekipman & Ürün Kullanımı",
-    emoji: "⚙️",
+    icon: "settings",
     description:
       "Filtre, ısıtıcı, aydınlatma, hava motoru ve CO2 - seçim, kurulum ve bakım.",
   },

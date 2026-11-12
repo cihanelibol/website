@@ -1,0 +1,15 @@
+# Enforce required code owner reviews through repository branch rules.
+/lib/auth.ts @griakvaryu
+/lib/oauth.ts @griakvaryu
+/lib/security.ts @griakvaryu
+/lib/storage.ts @griakvaryu
+/lib/orders.ts @griakvaryu
+/lib/checkout.ts @griakvaryu
+/lib/payments.ts @griakvaryu
+/app/admin/ @griakvaryu
+/app/api/auth/ @griakvaryu
+/app/hesap/actions.ts @griakvaryu
+/app/sepet/actions.ts @griakvaryu
+/.github/ @griakvaryu
+/scripts/ @griakvaryu
+/package*.json @griakvaryu

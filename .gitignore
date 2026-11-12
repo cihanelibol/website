@@ -12,6 +12,9 @@
 
 # testing
 /coverage
+/.security-build/
+/test-results/
+/playwright-report/
 
 # next.js
 /.next/
@@ -46,3 +49,11 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# Local design audit evidence and machine-specific consent
+.impeccable/evidence/
+.impeccable/config.local.json
+.impeccable/hook.cache.json
+
+# Machine-specific agent hooks and local screenshots
+.codex/

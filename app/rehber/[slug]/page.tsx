@@ -1,4 +1,6 @@
+import AppIcon from "@/components/AppIcon";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -54,6 +56,7 @@ export default async function RehberMakalePage({
 }: {
   params: Params;
 }) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   const { slug } = await params;
   const article = getArticle(slug);
   if (!article) notFound();
@@ -111,8 +114,9 @@ export default async function RehberMakalePage({
   return (
     <>
       <Navbar />
-      <main className="mx-auto min-h-svh w-full max-w-7xl px-4 pb-20 pt-24 sm:px-6 lg:px-8">
+      <main id="main-content" className="store-container min-h-svh pb-20 pt-24">
         <script
+          nonce={nonce}
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
@@ -152,7 +156,7 @@ export default async function RehberMakalePage({
 
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[250px_minmax(0,1fr)] xl:grid-cols-[250px_minmax(0,1fr)_220px]">
           {/* Sol kenar çubuğu - tüm rehber navigasyonu */}
-          <aside className="hidden lg:block">
+          <aside aria-label="Rehber kütüphanesi" className="hidden lg:block">
             <nav
               aria-label="Rehber menüsü"
               className="sticky top-24 max-h-[calc(100vh-7rem)] space-y-6 overflow-y-auto pr-2"
@@ -160,7 +164,7 @@ export default async function RehberMakalePage({
               {categories.map((cat) => (
                 <div key={cat.slug}>
                   <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
-                    <span aria-hidden>{cat.emoji}</span>
+                    <span aria-hidden><AppIcon name={cat.icon ?? "book"} /></span>
                     {cat.title}
                   </div>
                   <ul className="space-y-0.5 border-l border-cyan-400/15">
@@ -345,7 +349,7 @@ export default async function RehberMakalePage({
 
           {/* Sağ kenar - içindekiler (masaüstü) */}
           {toc.length > 0 && (
-            <aside className="hidden xl:block">
+            <aside aria-label="Bu yazının bölümleri" className="hidden xl:block">
               <nav
                 aria-label="Bu sayfada"
                 className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto"

@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-11T18:20:05.470093+00:00",
+  "title": "Gri Akvaryum tasarım sistemi",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Mağaza mavisi",
+        "tonalRamp": [
+          "#003e87",
+          "#004799",
+          "#0055b8",
+          "#93b9e8",
+          "#eff6ff"
+        ]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Okuma ve nötr yüzeyler",
+        "tonalRamp": [
+          "#0f172a",
+          "#475569",
+          "#64748b",
+          "#cbd5e1",
+          "#e2e8f0",
+          "#f1f5f9",
+          "#f8fafc",
+          "#ffffff"
+        ]
+      },
+      "warning": {
+        "role": "tertiary",
+        "displayName": "Stok uyarısı",
+        "tonalRamp": [
+          "#92400e",
+          "#9a3412",
+          "#fff7ed"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "metadata": {
+        "displayName": "Yardımcı bilgi",
+        "purpose": "En küçük okunabilir etiket: 12px."
+      },
+      "display": {
+        "displayName": "Sahne başlığı",
+        "purpose": "Okyanus açılışı üst sınırı; normal gövde metni için kullanılmaz."
+      }
+    },
+    "breakpoints": [
+      {
+        "name": "small-phone",
+        "value": "480px"
+      },
+      {
+        "name": "mobile",
+        "value": "640px"
+      },
+      {
+        "name": "catalog-desktop",
+        "value": "1024px"
+      }
+    ],
+    "motion": [
+      {
+        "name": "product-hover",
+        "value": "0.15s",
+        "purpose": "Çizgi/gölge geri bildirimi; azaltılmış harekette geçiş yok."
+      },
+      {
+        "name": "ocean-intro",
+        "value": "1800ms",
+        "purpose": "Kullanıcı tarafından belirlenen giriş süresi; baloncuk yükleme çubuğu ve çıkış dahil. Azaltılmış hareket tercihinde gösterilmez."
+      },
+      {
+        "name": "assistant-auto-open",
+        "value": "30000ms",
+        "purpose": "Open the assistant once per session after visible browsing time; defer during typing or another dialog."
+      }
+    ],
+    "shadows": [
+      {
+        "name": "product-hover",
+        "value": "0 4px 16px #031d3a08",
+        "purpose": "Ürün kartının hover durumu."
+      },
+      {
+        "name": "floating-support",
+        "value": "0 2px 6px #0003",
+        "purpose": "Yüzen destek bağlantısının arka plandan ayrılması."
+      }
+    ]
+  },
+  "narrative": {
+    "overview": "Kaynak, kullanıcının Gri Akvaryum prototipi ve çalışan mağaza arayüzüdür. Lacivert/mavi, Inter ve açık yüzeyler korunur. Gerçek mağaza fotoğrafları, ürün verisi ve uzman iletişimi kimliği taşır. Bu belge yeni bir marka yönü önermez; uygulanmış sistemi kaydeder.",
+    "dos": [
+      "Gerçek katalog verisi kullan",
+      "Klavye odağını görünür tut",
+      "Aynı görevde ortak metin ve renk rollerini kullan"
+    ],
+    "donts": [
+      "Eksik ürün fotoğrafını uydurma",
+      "Hazır olmayan ödeme yöntemini vaat etme",
+      "Uyarıları gizlemek için genel detector dışlaması ekleme"
+    ]
+  }
+}

@@ -1,13 +1,15 @@
 "use client";
 
+import AppIcon from "@/components/AppIcon";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logoutAction } from "./actions";
 
 const items = [
-  { href: "/hesap", label: "Profilim", emoji: "👤" },
-  { href: "/hesap/adresler", label: "Adreslerim", emoji: "📍" },
-  { href: "/hesap/siparisler", label: "Siparişlerim", emoji: "📦" },
+  { href: "/hesap/guvenlik", label: "Güvenlik", icon: "lock" },
+  { href: "/hesap", label: "Profilim", icon: "user" },
+  { href: "/hesap/adresler", label: "Adreslerim", icon: "pin" },
+  { href: "/hesap/siparisler", label: "Siparişlerim", icon: "package" },
 ];
 
 export default function HesapNav({
@@ -33,7 +35,7 @@ export default function HesapNav({
             href="/admin"
             className="flex items-center gap-2.5 rounded-xl border border-amber-400/40 px-3 py-2.5 text-sm font-semibold text-amber-300 transition-colors hover:border-amber-400/70 hover:bg-amber-400/10"
           >
-            <span>⚙️</span>
+            <span><AppIcon name="settings" /></span>
             Yönetim Paneli
           </Link>
         )}
@@ -47,13 +49,13 @@ export default function HesapNav({
                 : "text-muted hover:bg-cyan-400/10 hover:text-foreground"
             }`}
           >
-            <span>{item.emoji}</span>
+            <span><AppIcon name={item.icon ?? "book"} /></span>
             {item.label}
           </Link>
         ))}
         <form action={logoutAction}>
           <button className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-muted transition-colors hover:bg-red-400/10 hover:text-red-300">
-            <span>🚪</span>
+            <span><AppIcon name="logout" /></span>
             Çıkış Yap
           </button>
         </form>

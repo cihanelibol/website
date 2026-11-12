@@ -1,3 +1,4 @@
+import AppIcon from "@/components/AppIcon";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GoogleButton from "@/components/GoogleButton";
@@ -29,7 +30,7 @@ export default async function GirisPage({
   return (
     <>
       <Navbar />
-      <main className="mx-auto flex min-h-svh w-full max-w-7xl items-center justify-center px-4 pb-20 pt-24 sm:px-6 lg:px-8">
+      <main id="main-content" className="store-container flex min-h-svh items-center justify-center pb-20 pt-24">
         <div className="glass w-full max-w-md rounded-3xl p-8">
           <h1 className="font-display mb-1 text-2xl font-bold tracking-tight">
             Giriş Yap
@@ -39,7 +40,7 @@ export default async function GirisPage({
           </p>
           {hataMesaji && (
             <p className="mb-4 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-2.5 text-sm text-amber-300">
-              ⚠ {hataMesaji}
+              <AppIcon name="warning" /> {hataMesaji}
             </p>
           )}
           {googleConfigured() && <GoogleButton />}

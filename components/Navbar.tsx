@@ -1,259 +1,262 @@
 "use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import SiteSearch from "./SiteSearch";
-import ThemeToggle from "./ThemeToggle";
-import CartDrawer from "@/components/cart/CartDrawer";
-import { useCart } from "@/components/cart/CartProvider";
+import AnimatedSearchInput from "./AnimatedSearchInput";
+import CartDrawer from "./cart/CartDrawer";
+import { useCart } from "./cart/CartProvider";
 import { logoutAction } from "@/app/hesap/actions";
 
 const links = [
-  { href: "/", label: "Ana Sayfa" },
-  { href: "/urunler", label: "Ürünler" },
-  { href: "/#kategoriler", label: "Kategoriler" },
-  { href: "/rehber", label: "Yardım Merkezi" },
-  { href: "/iletisim", label: "İletişim" },
+  ["/urunler", "Tüm Ürünler"],
+  ["/urunler?grup=baliklar-canlilar", "Canlı Balık"],
+  ["/urunler?grup=yemler", "Balık Yemleri"],
+  ["/urunler?grup=filtreler", "Filtreler"],
+  ["/urunler?grup=su-bakimi", "Kimyasallar"],
+  ["/urunler?grup=aksesuar-temizlik", "Aksesuar"],
+  ["/rehber#tuzlu-su", "Deniz & Resif"],
+  ["/rehber", "Yardım Merkezi"],
+  ["/iletisim", "İletişim"],
 ];
-
-function readDisplayName(): string | null {
-  const match = document.cookie.match(/(?:^|;\s*)ga_user=([^;]+)/);
-  return match ? decodeURIComponent(match[1]) : null;
-}
-
-function readRole(): string | null {
-  const match = document.cookie.match(/(?:^|;\s*)ga_role=([^;]+)/);
-  return match ? match[1] : null;
-}
-
-function CartButton({ onClick }: { onClick: () => void }) {
-  const { totalCount } = useCart();
+function CategoryLinks() {
+  const path = usePathname();
+  const params = useSearchParams();
   return (
-    <button
-      onClick={onClick}
-      className="relative flex h-10 w-10 items-center justify-center rounded-xl text-xl transition-colors hover:bg-cyan-400/10"
-      aria-label="Sepeti aç"
-    >
-      🛒
-      {totalCount > 0 && (
-        <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-cyan-500 to-teal-500 px-1 text-[11px] font-bold text-slate-950">
-          {totalCount > 99 ? "99+" : totalCount}
-        </span>
-      )}
-    </button>
+    <>
+      {links.map(([href, label]) => {
+        const [target, query] = href.split("?");
+        const active =
+          !href.includes("#") &&
+          path === target &&
+          (query ? params.toString() === query : !params.toString());
+        return (
+          <Link
+            key={href}
+            href={href}
+            aria-current={active ? "page" : undefined}
+          >
+            {label}
+          </Link>
+        );
+      })}
+    </>
   );
 }
-
+function subscribeToAccount(onChange: () => void) {
+  window.addEventListener("focus", onChange);
+  return () => window.removeEventListener("focus", onChange);
+}
+function accountSnapshot() {
+  return document.cookie;
+}
+function serverAccountSnapshot() {
+  return "";
+}
 export default function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const { totalCount } = useCart();
   const [cartOpen, setCartOpen] = useState(false);
-  const [userName, setUserName] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+  const menuRef = useRef<HTMLElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const accountCookie = useSyncExternalStore(
+    subscribeToAccount,
+    accountSnapshot,
+    serverAccountSnapshot,
+  );
+  const userName = /(?:^|;\s*)ga_user=([^;]+)/.test(accountCookie);
+  const isAdmin = /(?:^|;\s*)ga_role=admin(?:;|$)/.test(accountCookie);
+  const closeCart = useCallback(() => setCartOpen(false), []);
+  const openCart = useCallback(() => setCartOpen(true), []);
+  useLayoutEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+    const root = document.documentElement;
+    // Next.js and anchor links need the entire sticky header's scroll offset.
+    const updateHeight = () => {
+      root.style.setProperty("--store-header-height", `${header.getBoundingClientRect().height}px`);
+    };
+    updateHeight();
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(header);
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty("--store-header-height");
+    };
   }, []);
-
   useEffect(() => {
-    setUserName(readDisplayName());
-    setIsAdmin(readRole() === "admin");
+    const open = () => setCartOpen(true);
+    window.addEventListener("ga:open-cart", open);
+    return () => window.removeEventListener("ga:open-cart", open);
   }, []);
-
+  useEffect(() => {
+    if (!menuOpen) return;
+    const desktop = window.matchMedia("(min-width: 1101px)");
+    const closeOnDesktop = () => {
+      if (desktop.matches) setMenuOpen(false);
+    };
+    const closeOutside = (event: PointerEvent) => {
+      if (
+        event.target instanceof Node &&
+        !menuRef.current?.contains(event.target) &&
+        !menuButtonRef.current?.contains(event.target)
+      ) setMenuOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    };
+    desktop.addEventListener("change", closeOnDesktop);
+    document.addEventListener("pointerdown", closeOutside);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      desktop.removeEventListener("change", closeOnDesktop);
+      document.removeEventListener("pointerdown", closeOutside);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [menuOpen]);
   return (
-    <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-        scrolled || menuOpen ? "glass-strong" : "glass-nav"
-      }`}
-    >
-      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-2.5" onClick={() => setMenuOpen(false)}>
-          <Image
-            src="/logo-mark.png"
-            alt="Gri Akvaryum logosu"
-            width={48}
-            height={28}
-            className="h-7 w-auto"
-            priority
-          />
-          <span className="font-display text-lg font-bold tracking-tight">
-            Gri<span className="text-gradient">Akvaryum</span>
-          </span>
-        </Link>
-
-        {/* Masaüstü menü */}
-        <ul className="hidden items-center gap-1 lg:flex">
-          {links.map((link) => (
-            <li key={link.href}>
-              <Link
-                href={link.href}
-                className="rounded-lg px-3 py-2 text-sm text-foreground/85 transition-colors hover:bg-cyan-400/10 hover:text-foreground"
-              >
-                {link.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-
-        <div className="flex items-center gap-1.5 md:gap-2">
-          {/* Üyelik - masaüstü */}
-          <div className="hidden items-center gap-1.5 md:flex">
-            {userName ? (
-              <>
-                {isAdmin && (
-                  <Link
-                    href="/admin"
-                    className="rounded-xl border border-amber-400/40 px-3 py-2 text-sm font-semibold text-amber-300 transition-colors hover:border-amber-400/70 hover:bg-amber-400/10"
-                  >
-                    ⚙️ Yönetim
-                  </Link>
-                )}
-                <Link
-                  href="/hesap"
-                  className="max-w-[10rem] truncate rounded-lg px-2 py-2 text-sm text-foreground/85 transition-colors hover:bg-cyan-400/10 hover:text-foreground"
-                >
-                  👤 <strong className="text-foreground">{userName}</strong>
-                </Link>
-                <form action={logoutAction}>
-                  <button className="rounded-lg px-3 py-2 text-sm text-foreground/85 transition-colors hover:bg-cyan-400/10 hover:text-foreground">
-                    Çıkış
-                  </button>
-                </form>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/giris"
-                  className="rounded-lg px-3 py-2 text-sm text-foreground/85 transition-colors hover:bg-cyan-400/10 hover:text-foreground"
-                >
-                  Giriş Yap
-                </Link>
-                <Link
-                  href="/kayit"
-                  className="rounded-xl border border-cyan-400/30 px-4 py-2 text-sm font-semibold text-cyan-200 transition-colors hover:border-cyan-400/60 hover:bg-cyan-400/10"
-                >
-                  Kayıt Ol
-                </Link>
-              </>
-            )}
-          </div>
-
-          {/* Tema düğmesi */}
-          <ThemeToggle />
-
-          {/* Büyüteç - sepetin hemen solunda */}
-          <SiteSearch />
-
-          <CartButton
-            onClick={() => {
-              setMenuOpen(false);
-              setCartOpen(true);
-            }}
-          />
-
-          {/* Mobil menü düğmesi */}
-          <button
-            className="flex h-10 w-10 items-center justify-center rounded-lg text-foreground lg:hidden"
-            onClick={() => setMenuOpen((v) => !v)}
-            aria-label="Menüyü aç/kapat"
-            aria-expanded={menuOpen}
+    <>
+      <a className="store-skip" href="#main-content">
+        İçeriğe geç
+      </a>
+      <header ref={headerRef} className="store-header">
+        <div className="store-container store-header-main">
+          <Link
+            href="/"
+            className="store-logo"
+            aria-label="Gri Akvaryum ana sayfa"
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              {menuOpen ? (
-                <>
-                  <line x1="5" y1="5" x2="19" y2="19" />
-                  <line x1="19" y1="5" x2="5" y2="19" />
-                </>
-              ) : (
-                <>
-                  <line x1="4" y1="7" x2="20" y2="7" />
-                  <line x1="4" y1="12" x2="20" y2="12" />
-                  <line x1="4" y1="17" x2="20" y2="17" />
-                </>
-              )}
-            </svg>
-          </button>
-        </div>
-      </nav>
-
-      {/* Mobil menü */}
-      {menuOpen && (
-        <div className="glass-strong border-t border-cyan-400/10 px-4 pb-6 pt-2 lg:hidden">
-          <ul className="flex flex-col gap-1">
-            {links.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className="block rounded-lg px-4 py-3 text-foreground/85 transition-colors hover:bg-cyan-400/10 hover:text-foreground"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-4 flex flex-col gap-2">
-            {userName ? (
-              <>
-                {isAdmin && (
-                  <Link
-                    href="/admin"
-                    className="rounded-xl border border-amber-400/40 px-5 py-3 text-center font-semibold text-amber-300"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    ⚙️ Yönetim Paneli
-                  </Link>
-                )}
-                <Link
-                  href="/hesap"
-                  className="glass rounded-xl px-5 py-3 text-center font-semibold"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  👤 Hesabım — {userName}
-                </Link>
-                <form action={logoutAction}>
-                  <button className="glass w-full rounded-xl px-5 py-3 text-center font-semibold">
-                    Çıkış Yap
-                  </button>
-                </form>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/giris"
-                  className="glass rounded-xl px-5 py-3 text-center font-semibold"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Giriş Yap
-                </Link>
-                <Link
-                  href="/kayit"
-                  className="rounded-xl border border-cyan-400/30 px-5 py-3 text-center font-semibold text-cyan-200"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Kayıt Ol
-                </Link>
-              </>
-            )}
-            <button
-              className="mt-1 block w-full rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 px-5 py-3 text-center font-semibold text-slate-950"
-              onClick={() => {
-                setMenuOpen(false);
-                setCartOpen(true);
-              }}
+            <Image
+              src="/logo-mark.png"
+              alt=""
+              width={38}
+              height={38}
+              priority
+            />
+            <span>
+              Gri<b>Akvaryum</b>
+            </span>
+          </Link>
+          <form action="/urunler" role="search" className="store-search">
+            <SiteSearch />
+            <label className="sr-only" htmlFor="store-search">
+              Ürün, balık türü veya marka arayın
+            </label>
+            <AnimatedSearchInput />
+            <button type="submit">Ara</button>
+          </form>
+          <div className="store-header-actions">
+            <Link
+              className="store-account"
+              href={userName ? "/hesap" : "/giris"}
+              aria-label={userName ? "Hesabım" : "Giriş yap"}
             >
-              🛒 Sepetim
+              <svg
+                width="26"
+                height="26"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="7" r="3.5" />
+                <path d="M5 21v-2a7 7 0 0 1 14 0v2" />
+              </svg>
+              <span>{userName ? "Hesabım" : "Giriş Yap"}</span>
+            </Link>
+            <button
+              type="button"
+              className="store-cart-button"
+              onClick={() => setCartOpen(true)}
+              aria-label={`Sepetim, ${totalCount} ürün`}
+            >
+              <svg
+                width="26"
+                height="26"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="m8 3-3 6m11-6 3 6M3 9h18l-1.7 10a2 2 0 0 1-2 1.7H6.7a2 2 0 0 1-2-1.7L3 9Z" />
+                <path d="M10 13h4l-2 3-2-3Z" fill="currentColor" stroke="none" />
+              </svg>
+              <span className="store-cart-label">Sepetim</span>
+              <span aria-live="polite">
+                {totalCount > 99 ? "99+" : totalCount}
+              </span>
+            </button>
+            <button
+              ref={menuButtonRef}
+              type="button"
+              className="store-menu-button"
+              aria-expanded={menuOpen}
+              aria-controls="store-mobile-menu"
+              aria-label="Menüyü aç veya kapat"
+              onClick={() => setMenuOpen(!menuOpen)}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d={menuOpen ? "M6 6l12 12M6 18 18 6" : "M4 6h16M4 12h16M4 18h16"} /></svg>
             </button>
           </div>
         </div>
-      )}
-
-      {/* Sağdan açılan sepet çekmecesi */}
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
-    </header>
+        <nav className="store-container store-nav" aria-label="Ana menü">
+          <Suspense
+            fallback={links.map(([href, label]) => (
+              <Link href={href} key={href}>
+                {label}
+              </Link>
+            ))}
+          >
+            <CategoryLinks />
+          </Suspense>
+        </nav>
+        {menuOpen && (
+          <nav
+            ref={menuRef}
+            id="store-mobile-menu"
+            className="store-mobile-menu"
+            onClick={(event) => {
+              if (event.target instanceof Element && event.target.closest("a")) {
+                setMenuOpen(false);
+              }
+            }}
+            aria-label="Mobil ana menü"
+          >
+            <div className="store-mobile-categories">
+              {links.map(([href, label]) => <Link key={href} href={href} onClick={() => setMenuOpen(false)}>{label}</Link>)}
+            </div>
+            <Link href="/hesap/siparisler">Siparişlerim</Link>
+            {isAdmin && <Link href="/admin">Yönetim paneli</Link>}
+            {userName ? (
+              <form action={logoutAction}>
+                <button>Çıkış yap</button>
+              </form>
+            ) : (
+              <Link href="/kayit">Hesap oluştur</Link>
+            )}
+          </nav>
+        )}
+      </header>
+      <CartDrawer open={cartOpen} onOpen={openCart} onClose={closeCart} />
+    </>
   );
 }

@@ -1,23 +1,21 @@
 "use client";
 
 import Image from "next/image";
+import ProductImagePlaceholder from "@/components/ProductImagePlaceholder";
 import { useState } from "react";
 
 export default function ImageGallery({
   images,
-  emoji,
   alt,
 }: {
-  images: string[];
-  emoji: string;
-  alt: string;
+  images: string[];  alt: string;
 }) {
   const [active, setActive] = useState(0);
 
   if (images.length === 0) {
     return (
-      <div className="glass flex aspect-square items-center justify-center rounded-3xl">
-        <span className="text-9xl">{emoji}</span>
+      <div className="store-missing-gallery">
+        <ProductImagePlaceholder />
       </div>
     );
   }
@@ -47,6 +45,7 @@ export default function ImageGallery({
                   : "border-transparent opacity-70 hover:opacity-100"
               }`}
               aria-label={`Görsel ${i + 1}`}
+              aria-pressed={i === active}
             >
               <Image
                 src={src}

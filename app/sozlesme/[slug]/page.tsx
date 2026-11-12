@@ -28,7 +28,7 @@ export default async function LegalPage({ params }: { params: Params }) {
   return (
     <>
       <Navbar />
-      <main className="mx-auto min-h-svh w-full max-w-4xl px-4 pb-20 pt-24 sm:px-6 lg:px-8">
+      <main id="main-content" className="store-container min-h-svh pb-20 pt-24">
         <nav className="mb-6 text-xs text-muted">
           <Link href="/" className="hover:text-cyan-300">
             Ana Sayfa
@@ -49,7 +49,7 @@ export default async function LegalPage({ params }: { params: Params }) {
           })}
         </p>
 
-        <div className="glass mt-6 rounded-3xl p-6 sm:p-8">
+        <div className="store-legal-copy glass mt-6 rounded-3xl p-6 sm:p-8">
           <p className="text-sm leading-relaxed text-muted">{doc.intro}</p>
 
           {doc.blocks.map((block, i) => {

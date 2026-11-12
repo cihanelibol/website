@@ -1,12 +1,16 @@
 "use client";
 
+import AppIcon from "@/components/AppIcon";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const tabs = [
-  { href: "/admin", label: "Sipariş Yönetimi", emoji: "📦" },
-  { href: "/admin/uyeler", label: "Üye Yönetimi", emoji: "👥" },
-  { href: "/admin/denetim", label: "Denetim Kaydı", emoji: "🕵️" },
+  { href: "/admin/guvenlik", label: "Güvenlik Olayları", icon: "shield" },
+  { href: "/admin/islemler", label: "Uzlaştırma / Tahsilat", icon: "check" },
+  { href: "/admin/yorumlar", label: "Yorum İnceleme", icon: "message" },
+  { href: "/admin", label: "Sipariş Yönetimi", icon: "package" },
+  { href: "/admin/uyeler", label: "Üye Yönetimi", icon: "users" },
+  { href: "/admin/denetim", label: "Denetim Kaydı", icon: "shield" },
 ];
 
 export default function AdminNav() {
@@ -29,7 +33,7 @@ export default function AdminNav() {
                 : "glass text-muted hover:border-cyan-400/40 hover:text-foreground"
             }`}
           >
-            <span>{tab.emoji}</span>
+            <span><AppIcon name={tab.icon ?? "book"} /></span>
             {tab.label}
           </Link>
         );

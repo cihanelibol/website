@@ -1,5 +1,6 @@
 "use client";
 
+import AppIcon from "@/components/AppIcon";
 import { useActionState, useEffect, useRef } from "react";
 import { addAddressAction, type AuthState } from "../actions";
 
@@ -44,8 +45,8 @@ export default function AdresForm() {
         <input name="postalCode" placeholder="Posta kodu" className={inputClass} />
       </div>
 
-      {state.error && <p className="text-sm text-red-400">⚠ {state.error}</p>}
-      {state.ok && <p className="text-sm text-teal-400">✓ Adres eklendi.</p>}
+      {state.error && <p className="text-sm text-red-400"><AppIcon name="warning" /> {state.error}</p>}
+      {state.ok && <p className="text-sm text-teal-400"><AppIcon name="check" /> Adres eklendi.</p>}
 
       <button
         disabled={pending}

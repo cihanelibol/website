@@ -13,7 +13,7 @@ export default function KayitPage() {
   return (
     <>
       <Navbar />
-      <main className="mx-auto flex min-h-svh w-full max-w-7xl items-center justify-center px-4 pb-20 pt-24 sm:px-6 lg:px-8">
+      <main id="main-content" className="store-container flex min-h-svh items-center justify-center pb-20 pt-24">
         <div className="glass w-full max-w-md rounded-3xl p-8">
           <h1 className="font-display mb-1 text-2xl font-bold tracking-tight">
             Kayıt Ol

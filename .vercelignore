@@ -1,0 +1,11 @@
+.env*
+.vercel/
+data/
+.gstack/
+*.tsbuildinfo
+.security-build/
+test-results/
+playwright-report/
+.impeccable/
+.codex/
+tests/

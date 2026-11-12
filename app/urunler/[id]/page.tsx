@@ -1,3 +1,4 @@
+import AppIcon from "@/components/AppIcon";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -7,12 +8,11 @@ import ImageGallery from "@/components/ImageGallery";
 import ActivityPing from "@/components/ActivityPing";
 import ReviewForm from "@/components/ReviewForm";
 import { AddToCartDetail } from "@/components/cart/AddToCartButton";
+import { IyzicoCheckoutNote } from "@/components/PaymentLogos";
 import { addReviewAction } from "./actions";
 import {
   formatPrice,
-  getAllProducts,
-  productEmoji,
-  type EtProduct,
+  getAllProducts,  type EtProduct,
 } from "@/lib/easytrade";
 import {
   BRANDS,
@@ -20,6 +20,7 @@ import {
   relatedArticleSlugs,
   usageSections,
 } from "@/lib/catalog";
+import { CONTACT } from "@/lib/site";
 import { getArticle } from "@/lib/rehber";
 import { getReviews, ratingSummary } from "@/lib/reviews";
 
@@ -44,7 +45,7 @@ function Stars({ value, size = "text-base" }: { value: number; size?: string }) 
     <span className={`inline-flex ${size}`} aria-label={`${value.toFixed(1)} yıldız`}>
       {[1, 2, 3, 4, 5].map((s) => (
         <span key={s} className={s <= Math.round(value) ? "" : "opacity-25 grayscale"}>
-          ⭐
+          <AppIcon name="star" fill="currentColor" />
         </span>
       ))}
     </span>
@@ -101,9 +102,9 @@ export default async function ProductDetailPage({
       <Navbar />
       {/* Üye denetim kaydı: ürün görüntüleme olayı */}
       <ActivityPing productId={product.id} productName={product.name} />
-      <main className="mx-auto min-h-svh w-full max-w-7xl px-4 pb-20 pt-24 sm:px-6 lg:px-8">
+      <main id="main-content" className="store-container store-product-detail min-h-svh pb-20 pt-24">
         {/* Kırıntı */}
-        <nav className="mb-6 text-xs text-muted">
+        <nav aria-label="Sayfa yolu" className="mb-6 text-xs text-muted">
           <Link href="/" className="hover:text-cyan-300">
             Ana Sayfa
           </Link>
@@ -125,11 +126,9 @@ export default async function ProductDetailPage({
         </nav>
 
         {/* Üst bölüm: galeri + bilgi */}
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,480px)_1fr] lg:gap-12">
+        <div className={`store-detail-grid grid gap-8 lg:grid-cols-[minmax(0,480px)_1fr] lg:gap-12${images.length ? "" : " store-detail-no-image"}`}>
           <ImageGallery
-            images={images}
-            emoji={productEmoji(product)}
-            alt={product.name}
+            images={images}            alt={product.name}
           />
 
           <div className="min-w-0">
@@ -161,7 +160,7 @@ export default async function ProductDetailPage({
             </div>
 
             <div className="mt-6 flex items-end gap-4">
-              <div className="font-display text-4xl font-bold text-gradient">
+              <div className="font-display text-4xl font-bold text-accent">
                 {formatPrice(product.price_with_tax)}
               </div>
               <div className="pb-1 text-sm text-muted">
@@ -185,10 +184,14 @@ export default async function ProductDetailPage({
               )}
             </div>
 
-            <div className="mt-7">
+            <div className="store-detail-purchase mt-7">
               <AddToCartDetail product={product} />
+              <a className="store-product-help" href={`${CONTACT.whatsappHref}?text=${encodeURIComponent(`${product.name} (${product.sku ?? product.id}) hakkında bilgi almak istiyorum.`)}`} target="_blank" rel="noopener noreferrer">Bu ürünü uzmana sor (WhatsApp)</a>
+              <IyzicoCheckoutNote className="mt-4" />
+              <p className="mt-3 text-xs leading-relaxed text-muted">Teslimat koşulları ve varsa kargo ücreti sipariş onayında bildirilir. Mağazadan teslim için bizimle iletişime geçebilirsiniz.</p>
             </div>
 
+            {!product.description?.trim() && <p className="store-product-data-note">Bu ürünün ölçü ve uyumluluk bilgileri katalogda yer almıyor. Sipariş vermeden önce ürün kodunu belirterek mağazamızdan bilgi alın.</p>}
             {product.description && (
               <p className="mt-7 whitespace-pre-line text-sm leading-relaxed text-muted">
                 {product.description}
@@ -252,7 +255,7 @@ export default async function ProductDetailPage({
                   <ul className="space-y-2.5 text-sm leading-relaxed text-muted">
                     {section.tips.map((tip, i) => (
                       <li key={i} className="flex gap-2.5">
-                        <span className="text-cyan-400">✓</span>
+                        <span className="text-cyan-400"><AppIcon name="check" /></span>
                         {tip}
                       </li>
                     ))}
@@ -268,7 +271,7 @@ export default async function ProductDetailPage({
           <section className="mt-14">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="font-display text-xl font-bold tracking-tight sm:text-2xl">
-                📚 İlgili Rehberler
+                <AppIcon name="book" /> İlgili Rehberler
               </h2>
               <Link
                 href="/rehber"
@@ -313,7 +316,7 @@ export default async function ProductDetailPage({
           <div className="grid gap-6 lg:grid-cols-[1fr_minmax(0,420px)]">
             <div className="space-y-4">
               {reviews.length === 0 ? (
-                <div className="glass rounded-3xl px-6 py-10 text-center text-sm text-muted">
+                <div className="glass rounded-3xl px-6 py-10 text-center text-lg text-muted">
                   Bu ürün için henüz yorum yapılmamış. İlk yorumu siz yazın!
                 </div>
               ) : (
@@ -326,7 +329,7 @@ export default async function ProductDetailPage({
                         {new Date(review.createdAt).toLocaleDateString("tr-TR")}
                       </span>
                     </div>
-                    <p className="text-sm leading-relaxed text-muted">
+                    <p className="text-lg leading-relaxed text-muted">
                       {review.comment}
                     </p>
                   </div>

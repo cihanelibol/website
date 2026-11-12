@@ -1,8 +1,9 @@
+import AppIcon from "@/components/AppIcon";
+import { requireAdmin } from "@/lib/auth";
 import Link from "next/link";
-import { readJson } from "@/lib/storage";
-import type { User } from "@/lib/auth";
+import { getAdminMembers } from "@/lib/admin-data";
 import {
-  ACTIVITY_EMOJIS,
+  ACTIVITY_ICONS,
   ACTIVITY_LABELS,
   getActivities,
   type ActivityType,
@@ -25,6 +26,7 @@ export default async function AdminDenetimPage({
 }: {
   searchParams: SearchParams;
 }) {
+  await requireAdmin();
   const params = await searchParams;
   const userId = params.uye || undefined;
   const type = TYPE_OPTIONS.some((t) => t.value === params.tur)
@@ -33,7 +35,7 @@ export default async function AdminDenetimPage({
 
   const [events, users] = await Promise.all([
     getActivities({ userId, type, limit: 150 }),
-    readJson<User[]>("users.json", []),
+    getAdminMembers(),
   ]);
 
   const activeUser = users.find((u) => u.id === userId);
@@ -74,7 +76,7 @@ export default async function AdminDenetimPage({
                   : "glass text-muted hover:text-foreground"
               }`}
             >
-              {ACTIVITY_EMOJIS[t.value]} {t.label}
+              <AppIcon name={ACTIVITY_ICONS[t.value]} /> {t.label}
             </Link>
           ))}
         </div>
@@ -82,13 +84,13 @@ export default async function AdminDenetimPage({
         {activeUser && (
           <div className="flex items-center gap-2 text-sm">
             <span className="rounded-full bg-cyan-400/15 px-3 py-1 text-xs font-semibold text-cyan-200">
-              👤 {activeUser.name} ({activeUser.email})
+              <AppIcon name="user" /> {activeUser.name} ({activeUser.email})
             </span>
             <Link
               href={filterUrl({ tur: type })}
               className="text-xs text-muted hover:text-foreground"
             >
-              ✕ Üye filtresini kaldır
+              <AppIcon name="close" /> Üye filtresini kaldır
             </Link>
           </div>
         )}
@@ -107,7 +109,7 @@ export default async function AdminDenetimPage({
               key={e.id}
               className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3 text-sm"
             >
-              <span className="text-lg">{ACTIVITY_EMOJIS[e.type]}</span>
+              <span className="text-lg"><AppIcon name={ACTIVITY_ICONS[e.type]} /></span>
               <Link
                 href={`/admin/denetim?uye=${e.userId}`}
                 className="font-semibold text-cyan-200 hover:text-cyan-100"

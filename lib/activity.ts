@@ -1,8 +1,10 @@
+import { requireAdmin } from "./auth";
+import "server-only";
 // Üye denetim kaydı (aktivite izleme): ürün görüntüleme, sepete ekleme vb.
 // Yalnızca giriş yapmış üyeler için tutulur; misafir hareketleri kaydedilmez.
 
 import { randomBytes } from "crypto";
-import { readJson, writeJson } from "./storage";
+import { readJson, updateJson } from "./storage";
 
 export type ActivityType =
   | "urun-goruntuleme"
@@ -19,12 +21,12 @@ export const ACTIVITY_LABELS: Record<ActivityType, string> = {
   kayit: "Üye oldu",
 };
 
-export const ACTIVITY_EMOJIS: Record<ActivityType, string> = {
-  "urun-goruntuleme": "👁️",
-  "sepete-ekleme": "🛒",
-  siparis: "📦",
-  giris: "🔑",
-  kayit: "✨",
+export const ACTIVITY_ICONS: Record<ActivityType, string> = {
+  "urun-goruntuleme": "eye",
+  "sepete-ekleme": "cart",
+  siparis: "package",
+  giris: "key",
+  kayit: "user",
 };
 
 export type ActivityEvent = {
@@ -53,11 +55,7 @@ export async function addActivity(
     id: randomBytes(6).toString("hex"),
     at: new Date().toISOString(),
   };
-  const all = await readJson<ActivityEvent[]>(FILE, []);
-  all.push(event);
-  // Sınırı aşan en eski kayıtları düş
-  const trimmed = all.length > MAX_EVENTS ? all.slice(all.length - MAX_EVENTS) : all;
-  await writeJson(FILE, trimmed);
+  await updateJson<ActivityEvent[], void>(FILE, [], all => ({ value: [...all.filter(e => Date.parse(e.at) > Date.now() - 30 * 86400_000), event].slice(-MAX_EVENTS), result: undefined }));
 }
 
 export async function getActivities(filter: {
@@ -65,6 +63,7 @@ export async function getActivities(filter: {
   type?: ActivityType;
   limit?: number;
 } = {}): Promise<ActivityEvent[]> {
+  await requireAdmin();
   const all = await readJson<ActivityEvent[]>(FILE, []);
   let list = all;
   if (filter.userId) list = list.filter((e) => e.userId === filter.userId);
@@ -78,6 +77,7 @@ export async function getActivities(filter: {
 export async function getLastActivityByUser(): Promise<
   Map<string, ActivityEvent>
 > {
+  await requireAdmin();
   const all = await readJson<ActivityEvent[]>(FILE, []);
   const map = new Map<string, ActivityEvent>();
   for (const e of all) {

@@ -1,5 +1,6 @@
 "use client";
 
+import AppIcon from "@/components/AppIcon";
 import Link from "next/link";
 import { useActionState, useMemo, useState } from "react";
 import { registerAction, type AuthState } from "@/app/hesap/actions";
@@ -34,7 +35,7 @@ const validators: Record<string, (v: string) => string | null> = {
   },
   password: (v) => {
     if (!v) return "Parola zorunludur.";
-    if (v.length < 6) return "Parola en az 6 karakter olmalı.";
+    if (v.length < 15 || v.length > 128) return "Parola 15–128 karakter olmalı.";
     return null;
   },
 };
@@ -67,7 +68,7 @@ const fieldMeta: Record<
   password: {
     label: "Parola",
     type: "password",
-    placeholder: "En az 6 karakter",
+    placeholder: "En az 15 karakter",
     autoComplete: "new-password",
   },
 };
@@ -106,6 +107,8 @@ export default function KayitForm() {
       e.preventDefault();
       // Tüm alanları "dokunulmuş" işaretle ki hatalar görünsün
       setTouched({ name: true, email: true, phone: true, password: true, legal: true });
+      const first = FIELDS.find((field) => errors[field]);
+      document.getElementById(first ? `register-${first}` : "register-legal")?.focus();
     }
   };
 
@@ -125,12 +128,16 @@ export default function KayitForm() {
         const showValid = touched[field] && !errors[field];
         return (
           <div key={field}>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted">
+            <label htmlFor={`register-${field}`} className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted">
               {meta.label} <span className="text-amber-400">*</span>
             </label>
             <div className="relative">
               <input
+                id={`register-${field}`}
+                required
+                aria-describedby={showError ? `register-error-${field}` : undefined}
                 name={field}
+                maxLength={field === "password" ? 128 : field === "email" ? 254 : field === "phone" ? 24 : 120}
                 type={meta.type}
                 inputMode={field === "phone" ? "tel" : undefined}
                 autoComplete={meta.autoComplete}
@@ -145,12 +152,12 @@ export default function KayitForm() {
               />
               {showValid && (
                 <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-teal-400">
-                  ✓
+                  <AppIcon name="check" />
                 </span>
               )}
             </div>
             {showError && (
-              <p className="mt-1.5 text-xs text-red-400">⚠ {errors[field]}</p>
+              <p id={`register-error-${field}`} role="alert" className="mt-1.5 text-xs text-red-400">{errors[field]}</p>
             )}
           </div>
         );
@@ -162,6 +169,9 @@ export default function KayitForm() {
           <label className="flex cursor-pointer items-start gap-2.5 text-xs leading-relaxed text-muted">
             <input
               type="checkbox"
+              id="register-legal"
+              aria-invalid={Boolean(touched.legal && errors.legal)}
+              aria-describedby={touched.legal && errors.legal ? "register-error-legal" : undefined}
               name="legal"
               checked={legal}
               onChange={(e) => {
@@ -176,7 +186,7 @@ export default function KayitForm() {
               <Link
                 href="/sozlesme/uyelik-sozlesmesi"
                 target="_blank"
-                className="font-semibold text-cyan-300 underline-offset-2 hover:underline"
+                className="font-semibold text-cyan-300 underline underline-offset-2 hover:decoration-2"
               >
                 Üyelik Sözleşmesi
               </Link>
@@ -184,7 +194,7 @@ export default function KayitForm() {
               <Link
                 href="/sozlesme/kvkk-aydinlatma"
                 target="_blank"
-                className="font-semibold text-cyan-300 underline-offset-2 hover:underline"
+                className="font-semibold text-cyan-300 underline underline-offset-2 hover:decoration-2"
               >
                 KVKK Aydınlatma Metni
               </Link>
@@ -192,7 +202,7 @@ export default function KayitForm() {
             </span>
           </label>
           {touched.legal && errors.legal && (
-            <p className="mt-1.5 pl-6 text-xs text-red-400">⚠ {errors.legal}</p>
+            <p id="register-error-legal" role="alert" className="mt-1.5 pl-6 text-xs text-red-400"><AppIcon name="warning" /> {errors.legal}</p>
           )}
         </div>
 
@@ -208,7 +218,7 @@ export default function KayitForm() {
             <Link
               href="/sozlesme/ticari-ileti"
               target="_blank"
-              className="font-semibold text-cyan-300 underline-offset-2 hover:underline"
+              className="font-semibold text-cyan-300 underline underline-offset-2 hover:decoration-2"
             >
               Ticari Elektronik İleti Onay Metni
             </Link>{" "}
@@ -217,7 +227,8 @@ export default function KayitForm() {
         </label>
       </div>
 
-      {state.error && <p className="text-sm text-amber-400">⚠ {state.error}</p>}
+      {state.message && <p role="status" className="text-sm text-teal-400">{state.message}</p>}
+      {state.error && <p role="alert" className="text-sm text-amber-400"><AppIcon name="warning" /> {state.error}</p>}
 
       <button
         disabled={pending}

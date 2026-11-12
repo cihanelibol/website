@@ -1,6 +1,9 @@
+import "server-only";
+import { appOrigin } from "./security";
+import { escapeHtml as esc } from "./email-text";
+import { boundedJson, object } from "./http";
 // Resend ile işlem e-postaları (hoş geldin, sipariş onayı, kargo/durum bildirimi).
-// RESEND_API_KEY tanımlı değilse gönderim sessizce atlanır (loglanır) —
-// site akışı asla e-posta yüzünden kırılmaz.
+// Gönderim yapılandırılmadıysa veya sağlayıcı reddederse çağıran işlem haberdar olur.
 //
 // Kurulum: https://resend.com → API Key → .env / Vercel'e RESEND_API_KEY ekle.
 // Alan adı doğrulanana kadar Resend yalnızca hesap sahibinin adresine gönderir;
@@ -10,18 +13,19 @@ import {
   ORDER_STATUS_LABELS,
   type OrderRecord,
   type OrderStatus,
-} from "./orders";
-import { formatPrice } from "./easytrade";
+} from "./order-types";
+import { formatPrice } from "./product-display";
+import { SITE_URL } from "./site";
 
 const RESEND_API = "https://api.resend.com/emails";
 
 function mailFrom(): string {
-  return process.env.MAIL_FROM ?? "Gri Akvaryum <onboarding@resend.dev>";
+  return process.env.MAIL_FROM!;
 }
 
 function adminEmails(): string[] {
   return (
-    process.env.ADMIN_EMAILS ?? "cihanelibol47@gmail.com,griakvaryum@gmail.com"
+    process.env.ADMIN_EMAILS ?? ""
   )
     .split(",")
     .map((e) => e.trim())
@@ -29,37 +33,44 @@ function adminEmails(): string[] {
 }
 
 export function emailConfigured(): boolean {
-  return Boolean(process.env.RESEND_API_KEY);
+  return Boolean(process.env.RESEND_API_KEY && process.env.MAIL_FROM);
 }
 
-async function sendEmail(opts: {
+export type EmailMessage = {
   to: string | string[];
   subject: string;
   html: string;
-}): Promise<void> {
+};
+export async function sendEmail(opts: EmailMessage, delivery?: { key: string; from: string }): Promise<void> {
   if (!emailConfigured()) {
-    console.log(`[email atlandı - RESEND_API_KEY yok] ${opts.subject}`);
-    return;
+    throw new Error("Email service is not configured");
   }
+  if (!opts.to.length || !opts.subject || !opts.html) throw new Error("Email recipient and content required");
   try {
     const res = await fetch(RESEND_API, {
       method: "POST",
+      signal: AbortSignal.timeout(10_000),
+      redirect: "error",
       headers: {
         Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         "Content-Type": "application/json",
+        ...(delivery ? { "Idempotency-Key": delivery.key } : {}),
       },
       body: JSON.stringify({
-        from: mailFrom(),
+        from: delivery?.from ?? mailFrom(),
         to: Array.isArray(opts.to) ? opts.to : [opts.to],
         subject: opts.subject,
         html: opts.html,
       }),
     });
     if (!res.ok) {
-      console.error("Resend hatası:", res.status, await res.text());
+      throw new Error("Email provider rejected the request");
     }
-  } catch (err) {
-    console.error("E-posta gönderilemedi:", err);
+    const receipt = object(await boundedJson(res, 8192));
+    if (typeof receipt.id !== "string" || !/^[a-f0-9-]{36}$/i.test(receipt.id)) throw new Error("Missing email acknowledgement");
+  } catch {
+    console.error("Email delivery failed; provider details redacted");
+    throw new Error("Email delivery failed");
   }
 }
 
@@ -93,7 +104,7 @@ function orderTable(order: OrderRecord): string {
   const rows = order.items
     .map(
       (i) => `<tr>
-        <td style="padding:6px 0;color:#b8cbd9;font-size:13px;">${i.name}</td>
+        <td style="padding:6px 0;color:#b8cbd9;font-size:13px;">${esc(i.name)}</td>
         <td style="padding:6px 0;color:#b8cbd9;font-size:13px;text-align:right;white-space:nowrap;">${i.qty} × ${formatPrice(i.price)}</td>
       </tr>`
     )
@@ -112,75 +123,84 @@ function orderTable(order: OrderRecord): string {
 export async function sendWelcomeEmail(name: string, email: string): Promise<void> {
   await sendEmail({
     to: email,
-    subject: "Gri Akvaryum'a Hoş Geldiniz! 🐠",
+    subject: "Gri Akvaryum'a Hoş Geldiniz!",
     html: layout(
-      `Hoş geldiniz, ${name}!`,
+      `Hoş geldiniz, ${esc(name)}!`,
       p("Gri Akvaryum ailesine katıldığınız için teşekkür ederiz.") +
         p(
           "1.900'den fazla ürün, canlı balıklar, premium yemler ve profesyonel ekipmanlar sizi bekliyor. Hesabınızdan adreslerinizi kaydedebilir, siparişlerinizi takip edebilirsiniz."
         ) +
-        `<a href="https://griakvaryum.vercel.app/urunler" style="display:inline-block;margin-top:8px;background:linear-gradient(90deg,#06b6d4,#14b8a6);color:#04101c;font-weight:700;font-size:14px;padding:12px 24px;border-radius:12px;text-decoration:none;">Alışverişe Başla</a>`
+        `<a href="${SITE_URL}/urunler" style="display:inline-block;margin-top:8px;background:linear-gradient(90deg,#06b6d4,#14b8a6);color:#04101c;font-weight:700;font-size:14px;padding:12px 24px;border-radius:12px;text-decoration:none;">Alışverişe Başla</a>`
     ),
   });
 }
 
-export async function sendOrderReceivedEmail(order: OrderRecord): Promise<void> {
-  await sendEmail({
+export function orderReceivedMessage(order: OrderRecord): EmailMessage {
+  return {
     to: order.email,
     subject: `Siparişiniz Alındı — ${order.id}`,
     html: layout(
-      "Siparişiniz Alındı! 🎉",
-      p(`Sayın ${order.customerName},`) +
+      "Siparişiniz Alındı!",
+      p(`Sayın ${esc(order.customerName)},`) +
         p(
           `<strong style="color:#ffffff;">${order.id}</strong> numaralı siparişiniz başarıyla oluşturuldu. En kısa sürede hazırlanıp durum güncellemeleri bu adrese iletilecek.`
         ) +
         orderTable(order) +
-        p(`<strong style="color:#ffffff;">Teslimat adresi:</strong> ${order.addressText}`)
+        p(`<strong style="color:#ffffff;">Teslimat adresi:</strong> ${esc(order.addressText)}`)
     ),
-  });
+  };
 }
 
-export async function sendAdminNewOrderEmail(order: OrderRecord): Promise<void> {
-  await sendEmail({
+export function adminNewOrderMessage(order: OrderRecord): EmailMessage {
+  return {
     to: adminEmails(),
-    subject: `🔔 Yeni Sipariş — ${order.id} (${formatPrice(order.total)})`,
+    subject: `Yeni Sipariş — ${order.id} (${formatPrice(order.total)})`,
     html: layout(
       "Yeni Sipariş Geldi",
-      p(`<strong style="color:#ffffff;">Müşteri:</strong> ${order.customerName} — ${order.phone} — ${order.email}`) +
-        p(`<strong style="color:#ffffff;">Adres:</strong> ${order.addressText}`) +
+      p(`<strong style="color:#ffffff;">Müşteri:</strong> ${esc(order.customerName)} — ${esc(order.phone)} — ${esc(order.email)}`) +
+        p(`<strong style="color:#ffffff;">Adres:</strong> ${esc(order.addressText)}`) +
         orderTable(order) +
-        `<a href="https://griakvaryum.vercel.app/admin" style="display:inline-block;margin-top:8px;background:linear-gradient(90deg,#06b6d4,#14b8a6);color:#04101c;font-weight:700;font-size:14px;padding:12px 24px;border-radius:12px;text-decoration:none;">Yönetim Paneli</a>`
+        `<a href="${SITE_URL}/admin" style="display:inline-block;margin-top:8px;background:linear-gradient(90deg,#06b6d4,#14b8a6);color:#04101c;font-weight:700;font-size:14px;padding:12px 24px;border-radius:12px;text-decoration:none;">Yönetim Paneli</a>`
     ),
-  });
+  };
 }
 
-export async function sendOrderStatusEmail(
+export function orderStatusMessage(
   order: OrderRecord,
   status: OrderStatus,
   note?: string
-): Promise<void> {
+): EmailMessage {
   const label = ORDER_STATUS_LABELS[status];
   let extra = "";
   if (status === "kargoda" && order.cargo?.firma) {
     extra = p(
-      `<strong style="color:#ffffff;">Kargo firması:</strong> ${order.cargo.firma}` +
+      `<strong style="color:#ffffff;">Kargo firması:</strong> ${esc(order.cargo.firma)}` +
         (order.cargo.takipNo
-          ? `<br/><strong style="color:#ffffff;">Takip numarası:</strong> ${order.cargo.takipNo}`
+          ? `<br/><strong style="color:#ffffff;">Takip numarası:</strong> ${esc(order.cargo.takipNo)}`
           : "")
     );
   }
-  await sendEmail({
+  return {
     to: order.email,
     subject: `Sipariş Durumu: ${label} — ${order.id}`,
     html: layout(
       `Siparişiniz: ${label}`,
-      p(`Sayın ${order.customerName},`) +
+      p(`Sayın ${esc(order.customerName)},`) +
         p(
           `<strong style="color:#ffffff;">${order.id}</strong> numaralı siparişinizin durumu <strong style="color:#22d3ee;">${label}</strong> olarak güncellendi.`
         ) +
         extra +
-        (note ? p(`<strong style="color:#ffffff;">Not:</strong> ${note}`) : "") +
+        (note ? p(`<strong style="color:#ffffff;">Not:</strong> ${esc(note)}`) : "") +
         orderTable(order)
     ),
-  });
+  };
+}
+
+export async function sendAccountEmail(email: string, token: string, purpose: "verify" | "reset"): Promise<void> {
+  if (!emailConfigured()) throw new Error("Email delivery is not configured");
+  const label = purpose === "verify" ? "E-posta Adresini Doğrula" : "Parolayı Yenile";
+  const url = `${appOrigin()}/kimlik#${purpose}:${token}`;
+  await sendEmail({ to: email, subject: label, html: layout(label,
+    p("Bu bağlantı 30 dakika geçerlidir ve yalnızca bir kez kullanılabilir. İşlemi siz başlatmadıysanız bu e-postayı yok sayın.") +
+    `<a href="${esc(url)}">${label}</a>`) });
 }

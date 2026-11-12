@@ -1,0 +1,60 @@
+/* Shared scene palette: first paint and animation must use the same water colors. */
+:root {
+  --ocean-loader-border: #98e8f138;
+  --ocean-loader-bg: #031c3159;
+  --ocean-loader-shadow: #01111f66;
+  --ocean-loader-light: #39cad00a;
+  --ocean-loader-fill-start: #42b7d315;
+  --ocean-loader-fill-end: #65e5ee40;
+  --ocean-bubble-border: #a7f3ffb3;
+  --ocean-bubble-highlight: #efffffbd;
+  --ocean-bubble-mid: #7ce7f13d;
+  --ocean-bubble-shade: #30b1ce30;
+  --ocean-bubble-edge: #b4f7ff80;
+  --ocean-bubble-glow: #6ee7ed40;
+  --ocean-bubble-inner-light: #d6fbff66;
+  --ocean-bubble-reflection: #e9ffff;
+  --ocean-first-paint: #021526;
+  --ocean-surface-light: #589fa9;
+  --ocean-surface-water: #145268;
+  --ocean-water-mid: #0a364b;
+  --ocean-water-top: #08364c;
+  --ocean-water-deep: #041e33;
+  --ocean-abyss: #010e1c;
+  --ocean-text: #edfbff;
+  --ocean-surface-ripple: #a6e8e548;
+  --ocean-ray-soft: #c2ffff09;
+  --ocean-ray-mid: #a0e8eb15;
+  --ocean-ray-bright: #9df2f21a;
+  --ocean-ray-faint: #c3fbff0b;
+  --ocean-floor-ripple: #74c5d9;
+  --ocean-vignette: #010b18a6;
+  --ocean-creature-light: #7ce3ff29;
+  --ocean-particle: #b9ecf1;
+  --ocean-particle-glow: #9be6ef66;
+  --ocean-logo-light: #00c7e62b;
+  --ocean-wordmark-light: #6ecbdf30;
+  --ocean-caret: #7ee9ee;
+  --ocean-skip: #e0f1f5;
+  --ocean-focus: #a5edf4;
+}
+
+/* Covers the very first paint, before the client component can open its dialog. */
+html[data-ocean-intro="pending"] { background: var(--ocean-first-paint); }
+
+html[data-ocean-intro="pending"]::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  z-index: 2147483646;
+  background:
+    radial-gradient(ellipse at 49% -16%, var(--ocean-surface-light) 0, var(--ocean-surface-water) 24%, transparent 59%),
+    radial-gradient(ellipse at 76% 50%, var(--ocean-water-mid) 0, transparent 54%),
+    linear-gradient(180deg, var(--ocean-water-top), var(--ocean-water-deep) 52%, var(--ocean-abyss));
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ocean-intro="pending"]::before { display: none; }
+}

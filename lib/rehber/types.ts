@@ -38,6 +38,6 @@ export type Article = {
 export type Category = {
   slug: string;
   title: string;
-  emoji: string;
+  icon: string;
   description: string;
 };

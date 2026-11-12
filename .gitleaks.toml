@@ -1,0 +1,6 @@
+title = "Gri Akvaryum secret scanning"
+[extend]
+useDefault = true
+[allowlist]
+description = "Generated artifacts; never distributed"
+paths = ['''(^|/)node_modules/''', '''(^|/)\.next/''', '''(^|/)\.gstack/''', '''(^|/)\.security-build/''']

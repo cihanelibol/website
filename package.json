@@ -3,25 +3,51 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/dev.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit --incremental false",
+    "images:sync": "node scripts/sync-product-images.mjs --refresh-catalog",
+    "images:verify": "node scripts/verify-product-images.mjs",
+    "test:e2e": "playwright test",
+    "test:database": "node scripts/test-relational.mjs",
+    "build:isolated": "node scripts/isolated-build.mjs",
+    "security:admin": "node --conditions=react-server --experimental-strip-types scripts/admin.mjs"
   },
   "dependencies": {
+    "@ai-sdk/google": "^3.0.145",
     "@neondatabase/serverless": "^1.1.0",
-    "next": "16.2.12",
-    "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "ai": "^6.0.330",
+    "jose": "^6.2.17",
+    "next": "^16.4.6",
+    "otpauth": "^9.6.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.0",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^24.19.2",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.12",
+    "eslint-config-next": "^16.4.6",
+    "pg": "^8.23.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.1.0"
+  },
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "overrides": {
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.1"
+    }
   }
 }

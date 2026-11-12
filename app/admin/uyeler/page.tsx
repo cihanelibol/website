@@ -1,9 +1,10 @@
+import AppIcon from "@/components/AppIcon";
+import { requireAdmin } from "@/lib/auth";
 import Link from "next/link";
-import { readJson } from "@/lib/storage";
-import type { User } from "@/lib/auth";
+import { getAdminMembers } from "@/lib/admin-data";
 import { getAllOrders } from "@/lib/orders";
 import {
-  ACTIVITY_EMOJIS,
+  ACTIVITY_ICONS,
   ACTIVITY_LABELS,
   getLastActivityByUser,
 } from "@/lib/activity";
@@ -22,8 +23,9 @@ function timeAgo(iso: string): string {
 }
 
 export default async function AdminUyelerPage() {
+  await requireAdmin();
   const [users, orders, lastActivity] = await Promise.all([
-    readJson<User[]>("users.json", []),
+    getAdminMembers(),
     getAllOrders(),
     getLastActivityByUser(),
   ]);
@@ -82,7 +84,7 @@ export default async function AdminUyelerPage() {
                         <div className="font-medium">{u.name}</div>
                         <div className="text-xs text-muted">
                           {u.marketingConsent
-                            ? "✓ Pazarlama onayı var"
+                            ? <><AppIcon name="check" /> Pazarlama onayı var</>
                             : "Pazarlama onayı yok"}
                         </div>
                       </td>
@@ -104,7 +106,7 @@ export default async function AdminUyelerPage() {
                       </td>
                       <td className="px-5 py-3.5">
                         {stats ? (
-                          <span className="font-semibold text-gradient">
+                          <span className="font-semibold text-accent">
                             {formatPrice(stats.total)}
                           </span>
                         ) : (
@@ -115,7 +117,7 @@ export default async function AdminUyelerPage() {
                         {last ? (
                           <div>
                             <div className="text-foreground">
-                              {ACTIVITY_EMOJIS[last.type]}{" "}
+                              <AppIcon name={ACTIVITY_ICONS[last.type]} />{" "}
                               {ACTIVITY_LABELS[last.type]}
                               {last.productName && (
                                 <span className="text-muted">
@@ -136,7 +138,7 @@ export default async function AdminUyelerPage() {
                           href={`/admin/denetim?uye=${u.id}`}
                           className="whitespace-nowrap rounded-lg border border-cyan-400/25 px-3 py-1.5 text-xs font-semibold text-cyan-300 transition-colors hover:border-cyan-400/50 hover:bg-cyan-400/10"
                         >
-                          🕵️ Denetim
+                          <AppIcon name="shield" /> Denetim
                         </Link>
                       </td>
                     </tr>

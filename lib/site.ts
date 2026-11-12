@@ -14,6 +14,4 @@ export const CONTACT = {
   mapsUrl: "https://maps.google.com/?cid=8361299345043923804",
   mapsEmbedUrl:
     "https://maps.google.com/maps?q=GR%C4%B0%20AKVARYUM%20%26%20BALIK%20GALER%C4%B0S%C4%B0%20Fatih&ll=41.0164875,28.9711652&z=17&hl=tr&output=embed",
-  rating: "4,8",
-  reviewCount: 206,
 } as const;
