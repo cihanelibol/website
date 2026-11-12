@@ -52,7 +52,7 @@ export type ProductsResponse = {
 };
 
 function catalogUrl(path: string): string {
-  const slug = process.env.EASYTRADE_CATALOG_SLUG;
+  const slug = process.env.EASYTRADE_CATALOG_SLUG?.trim();
   if (!slug || !/^[a-zA-Z0-9_-]+$/.test(slug)) {
     throw new Error("EASYTRADE_CATALOG_SLUG ortam değişkeni tanımlı değil");
   }

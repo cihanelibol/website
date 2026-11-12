@@ -1,7 +1,17 @@
-import { it, expect } from "vitest";
+import { it, expect, vi } from "vitest";
+import { getProducts } from "../lib/easytrade";
 import { boundedJson } from "../lib/http";
 import { orderReceipt, productsResponse } from "../lib/catalogue-schema";
 const receipt = { success: true, order: { order_number: "ET-42", total_amount: "10.00", currency: "TRY" } };
+it("normalizes pasted catalogue settings while rejecting URL path injection", async () => {
+  vi.stubEnv("EASYTRADE_CATALOG_SLUG", " catalog-123\r\n");
+  vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({ data: [], pagination: { current_page: 1, last_page: 1, per_page: 48, total: 0, from: null, to: null } }), { headers: { "Content-Type": "application/json" } }));
+  await getProducts();
+  expect(vi.mocked(fetch).mock.calls[0][0]).toBe("https://pro.easytradetr.com/catalog/catalog-123/products?page=1");
+  vi.stubEnv("EASYTRADE_CATALOG_SLUG", "../another-catalog");
+  await expect(getProducts()).rejects.toThrow("EASYTRADE_CATALOG_SLUG");
+  expect(fetch).toHaveBeenCalledTimes(1);
+});
 it("validates external order evidence including currency and exact amount", () => {
   expect(orderReceipt({ props: { result: receipt } }, 10).reference).toBe("ET-42");
   for (const change of [{ currency: "USD" }, { total_amount: 0.01 }, { order_number: "" }, { total_amount: "1e1" }])
