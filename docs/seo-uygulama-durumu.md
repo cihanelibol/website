@@ -2,6 +2,18 @@
 
 İlk teknik paket uygulandı. Bu kayıt, 90 günlük planın tamamının bitirildiği anlamına gelmez.
 
+## Yayın sonucu
+
+- Üretim: https://griakvaryum.com — Vercel READY.
+- Deployment: `dpl_oQ8L6keHp3PMMwsUwLsJ3YbwN6xZ`; kaynak commit: `aff3a1f`.
+- Yayın adresi: https://griakvaryum-os26nf4on-cihanelibols-projects.vercel.app
+- Build 34 saniye; post-build 22 saniye. Next.js 16.4.6.
+- Canlı alan adında SEO doğrulaması ve mobil/consent tarayıcı doğrulaması başarılı; sitemap 1.959 URL / 1.908 ürün.
+- Yayın sonrası 10 dakikalık Vercel hata sorgusunda kayıt bulunmadı. Sürekli izleme veya harici log drain kurulumu bu paket kapsamında doğrulanmadı.
+- Gerçek Google betiğiyle `page_view` ve `view_item` isteklerinin G-VFL3YXK217 hedefine hazırlandığı doğrulandı; QA istekleri gönderilmeden yakalandı.
+- GitHub push başarısız: mevcut `cihanelibol` kimliğine yazma için 403; bağlı GitHub uygulamasında da yazma yetkisi yok. Kod yerel commit'te ve üretimde; GitHub main henüz güncel değil. Yazma erişimi sağlanınca mevcut commit'ler gönderilmeli; eski main'den yeni yayın başlatmak bu paketi geri alabilir.
+- Search Console tarayıcı erişim sunucusu kullanılamadı; sitemap'in hesap panelinden gönderimi yapılmadı.
+
 ## Uygulananlar
 
 - Ürün site haritası: doğrulama anında 1.908 ürün, toplam 1.959 adres. Yalnızca ürün bulunan kategori/markalar dahil; katalog hatasında eksik başarılı sitemap yerine hata yanıtı.

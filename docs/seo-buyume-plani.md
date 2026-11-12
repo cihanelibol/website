@@ -297,4 +297,4 @@ Ekonomik model: ek organik tıklama × gerçekleşen satın alma oranı × sipar
 
 Uygulama başlangıcında gerekli işletme verileri: Search Console/İşletme Profili mevcut durumu, son 90 günlük ürün satışları, marj ve stok sürekliliği, gerçek teslimat/ödeme/iade koşulları, uzman/ekip bilgileri ve kullanılabilir mağaza fotoğrafları. Planın hazırlanması bu erişimler beklenmeden tamamlandı; sonuç hedeflerinin kesinleştirilmesi bunlara bağlı.
 
-Teknik operasyon notu: Vercel CLI bu ortamda kurulu değil. Uygulamaya geçerken `npm i -g vercel` ile kurulmasını güçlü biçimde öneririm; `vercel env pull`, `vercel deploy` ve `vercel logs` ortam, yayın ve hata incelemesini kolaylaştırır. Bu bir SEO sıralama faktörü değildir. Bu çalışma sırasında kurulum veya deployment yapılmadı.
+Teknik operasyon notu: İlk planın başlangıç bağlamında CLI kurulu görünmüyordu; uygulama sırasında Vercel CLI 65.15.0 ve mevcut oturum doğrulandı. Üretim yayını ve log kontrolü bu oturumla yapıldı. CLI bulunmayan geliştirme ortamları için `npm i -g vercel` kurulumu önerilir; bu bir SEO sıralama faktörü değildir. Güncel yayın ve erişim durumu uygulama kaydındadır.
