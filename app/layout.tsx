@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 
 import { CartProvider } from "@/components/cart/CartProvider";
 import StoreContactBar from "@/components/StoreContactBar";
+import AnalyticsConsent from "@/components/AnalyticsConsent";
 import { SITE_URL } from "@/lib/site";
 import { OCEAN_INTRO_BOOTSTRAP } from "@/lib/ocean-intro";
 import "./globals.css";
@@ -14,9 +15,9 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "Gri Akvaryum | Akvaryum & Balık Galerisi",
+  title: "Gri Akvaryum | Eminönü Akvaryum Mağazası ve Balık Galerisi",
   description:
-    "Gri Akvaryum - akvaryum, süs balığı, yem ve ekipmanda uzman adresiniz. Canlı balık garantisi, uzman desteği ve hızlı teslimat.",
+    "Eminönü Gri Akvaryum mağazasında akvaryum, süs balığı, yem ve ekipmanları keşfedin. Güncel ürünler, bakım rehberleri ve mağazadan seçim desteği.",
   keywords: [
     "akvaryum",
     "süs balığı",
@@ -50,6 +51,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <StoreContactBar />
         <CartProvider>{children}</CartProvider>
+        <AnalyticsConsent nonce={nonce} />
       </body>
     </html>
   );

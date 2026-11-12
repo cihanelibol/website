@@ -19,6 +19,18 @@ const COMPANY = "GRİ AKVARYUM & BALIK GALERİSİ";
 const SITE = "griakvaryum.com";
 
 export const legalDocs: LegalDoc[] = [
+  {
+    slug: "analitik-cerezler",
+    title: "Analitik Çerez Tercihleri",
+    updated: "2026-11-12",
+    intro: "Zorunlu oturum ve sepet işlevleri, analitik izninizden bağımsız çalışır. İsteğe bağlı ziyaret ölçümünü aşağıdaki şekilde yönetebilirsiniz.",
+    blocks: [
+      { type: "h2", title: "İsteğe bağlı ziyaret ölçümü" },
+      { type: "p", text: "Analitiğe izin verdiğinizde Google Tag Manager üzerinden Google Analytics yüklenir. Sayfa ziyaretleri, ürün etkileşimleri ve telefon, WhatsApp veya yol tarifi bağlantısı tıklamaları siteyi geliştirmek için ölçülür. Analitik çerezler tarayıcınızı ve ziyaret oturumlarını ayırt etmek için kullanılabilir; veriler Google altyapısında işlenir. Uygulamanın eklediği olaylara ad, e-posta, telefon veya adres bilgisi eklenmez. Reklam depolama ve reklam kişiselleştirme izinleri kapalı tutulur." },
+      { type: "h2", title: "Tercihinizi değiştirme" },
+      { type: "p", text: "Yalnızca gerekli seçeneğinde Google ölçüm betiği yüklenmez. Tercihiniz tarayıcınızın yerel depolamasında saklanır. Alt menüdeki Çerez tercihleri bağlantısından izninizi geri alabilirsiniz; bu durumda ölçüm durdurulur, erişilebilir Google Analytics çerezleri silinir ve sayfa yenilenir. Bu tercih, daha önce işlenmiş verileri kendiliğinden silmez." },
+    ],
+  },
   /* ---------------- KVKK Aydınlatma Metni ---------------- */
   {
     slug: "kvkk-aydinlatma",

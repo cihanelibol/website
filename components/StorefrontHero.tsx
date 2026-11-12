@@ -10,7 +10,7 @@ import styles from "./StorefrontHero.module.css";
 
 const shortcuts = [
   { href: "/rehber/ilk-akvaryum-kurulumu", title: "Yeni başlıyorum", text: "İlk akvaryum rehberi ve uzman desteği", image: "starter" },
-  { href: "/urunler?grup=baliklar-canlilar", title: "Canlı balık", text: "Akvaryumunuza uygun türleri keşfedin", image: "betta" },
+  { href: "/kategori/baliklar-canlilar", title: "Canlı balık", text: "Akvaryumunuza uygun türleri keşfedin", image: "betta" },
   { href: "/rehber#tuzlu-su", title: "Deniz & Resif", text: "Tuz, mercan bakımı ve test kitleri", image: "reef" },
 ];
 
@@ -81,11 +81,11 @@ export default function StorefrontHero() {
         </div>
         <div className={styles.content}>
           <div>
-            <h1 className={styles.motto}>
+            <p className={styles.motto}>
               {storeMottos.map((motto, index) => (
                 <span key={motto} aria-hidden={index !== mottoIndex} data-active={index === mottoIndex}>{motto}</span>
               ))}
-            </h1>
+            </p>
             <p className={styles.services}>Akvaryum kurulum ve bakım hizmetleri.</p>
           </div>
           <figure className={styles.review}>

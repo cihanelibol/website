@@ -10,6 +10,14 @@ import ProductCard from "@/components/ProductCard";
 import { getCategories, getAllProducts } from "@/lib/easytrade";
 import { buildCategoryGroups } from "@/lib/catalog";
 import { CONTACT } from "@/lib/site";
+import { pageMetadata, storeSchema } from "@/lib/seo";
+import JsonLd from "@/components/JsonLd";
+
+export const metadata = pageMetadata(
+  "Gri Akvaryum | Eminönü Akvaryum Mağazası ve Balık Galerisi",
+  "Eminönü, Fatih'te akvaryum balıkları, yemler, filtreler ve ekipmanlar. Güncel ürünleri keşfedin, bakım rehberlerini okuyun ve mağazamızdan seçim desteği alın.",
+  "/",
+);
 
 const trust = [
   {
@@ -56,7 +64,12 @@ export default async function Home() {
     <>
       <OceanSplash />
       <Navbar />
+      <JsonLd data={storeSchema} />
       <main id="main-content" className="store-home">
+        <div className="store-container pt-6">
+          <h1 className="font-display text-xl font-semibold sm:text-2xl">Eminönü’nde akvaryum, balık ve ekipman mağazası</h1>
+          <Link href="/magaza/eminonu" className="mt-2 inline-block text-sm text-accent">Gri Akvaryum’u ziyaret edin →</Link>
+        </div>
         <div className="store-container store-intro">
           <nav
             id="kategoriler"
@@ -65,7 +78,7 @@ export default async function Home() {
           >
             <h2>Kategoriler</h2>
             {topCategories.map((c) => (
-              <Link key={c.key} href={`/urunler?grup=${c.key}`}>
+              <Link key={c.key} href={`/kategori/${c.key}`}>
                 <span>
                   <strong>{c.title}</strong>
                   <small>{c.categories.length} alt kategori</small>

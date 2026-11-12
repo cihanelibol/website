@@ -5,6 +5,7 @@ import { googleConfigured } from "@/lib/auth";
 import KayitForm from "./KayitForm";
 
 export const metadata = {
+  robots: { index: false, follow: true },
   title: "Kayıt Ol | Gri Akvaryum",
   description: "Gri Akvaryum'a üye olun - siparişlerinizi kolayca takip edin.",
 };

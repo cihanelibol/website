@@ -26,7 +26,7 @@ export default function CloudBrandMarquee() {
                 {brands.map(([slug, name]) => (
                   <Link
                     key={slug}
-                    href={`/urunler?marka=${slug}`}
+                    href={`/marka/${slug}`}
                     className={styles.brand}
                     aria-label={`${name} ürünleri`}
                     tabIndex={duplicate ? -1 : undefined}

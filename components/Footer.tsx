@@ -3,17 +3,19 @@ import Link from "next/link";
 import AppIcon from "@/components/AppIcon";
 import { PaymentLogoBand } from "@/components/PaymentLogos";
 import { CONTACT } from "@/lib/site";
+import { AnalyticsSettingsButton } from "@/components/AnalyticsConsent";
 
 const categories = [
-  ["/urunler?grup=baliklar-canlilar", "Süs balıkları"],
-  ["/urunler?grup=akvaryumlar", "Akvaryumlar"],
-  ["/urunler?grup=yemler", "Yem & vitamin"],
-  ["/urunler?grup=filtreler", "Ekipman & filtre"],
-  ["/urunler?grup=su-bakimi", "Su bakımı"],
+  ["/kategori/baliklar-canlilar", "Süs balıkları"],
+  ["/kategori/akvaryumlar", "Akvaryumlar"],
+  ["/kategori/yemler", "Yem & vitamin"],
+  ["/kategori/filtreler", "Ekipman & filtre"],
+  ["/kategori/su-bakimi", "Su bakımı"],
   ["/urunler", "Tüm ürünler"],
 ];
 
 const help = [
+  ["/magaza/eminonu", "Eminönü mağazamız"],
   ["/rehber", "Akvaryum rehberi"],
   ["/hesap/siparisler", "Siparişlerim"],
   ["/sozlesme/on-bilgilendirme", "Kargo ve teslimat"],
@@ -75,6 +77,7 @@ export default function Footer() {
             <p>© {new Date().getFullYear()} Gri Akvaryum. Tüm hakları saklıdır.</p>
           </div>
           <nav className="store-footer-legal" aria-label="Gizlilik ve yasal bilgiler">
+            <AnalyticsSettingsButton />
             <Link href="/sozlesme/kvkk-aydinlatma">KVKK aydınlatma metni</Link>
             <Link href="/sozlesme/on-bilgilendirme">Ön bilgilendirme</Link>
             <Link href="/sozlesme/ticari-ileti">Ticari elektronik ileti</Link>

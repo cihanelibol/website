@@ -1,4 +1,5 @@
 "use client";
+import { trackEvent } from "@/lib/analytics";
 
 // Sepet durumu: localStorage'da saklanır, tüm sayfalarda paylaşılır.
 
@@ -77,6 +78,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const items = useMemo(() => parseItems(raw), [raw]);
 
   const add = useCallback((item: Omit<CartItem, "qty">, qty = 1) => {
+    const before = parseItems(snapshot()).find(i => i.id === item.id)?.qty ?? 0;
     updateItems((prev) => {
       const existing = prev.find((i) => i.id === item.id);
       if (existing) {
@@ -88,6 +90,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, { ...item, qty: Math.min(item.maxStock, qty) }];
     });
+    const after = parseItems(snapshot()).find(i => i.id === item.id)?.qty ?? 0;
+    if (after > before) trackEvent("add_to_cart", { currency: "TRY", value: item.price * (after - before), items: [{ item_id: String(item.id), item_name: item.name, price: item.price, quantity: after - before }] });
   }, []);
 
   const remove = useCallback((id: number) => {

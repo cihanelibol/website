@@ -19,11 +19,11 @@ import { logoutAction } from "@/app/hesap/actions";
 
 const links = [
   ["/urunler", "Tüm Ürünler"],
-  ["/urunler?grup=baliklar-canlilar", "Canlı Balık"],
-  ["/urunler?grup=yemler", "Balık Yemleri"],
-  ["/urunler?grup=filtreler", "Filtreler"],
-  ["/urunler?grup=su-bakimi", "Kimyasallar"],
-  ["/urunler?grup=aksesuar-temizlik", "Aksesuar"],
+  ["/kategori/baliklar-canlilar", "Canlı Balık"],
+  ["/kategori/yemler", "Balık Yemleri"],
+  ["/kategori/filtreler", "Filtreler"],
+  ["/kategori/su-bakimi", "Kimyasallar"],
+  ["/kategori/aksesuar-temizlik", "Aksesuar"],
   ["/rehber#tuzlu-su", "Deniz & Resif"],
   ["/rehber", "Yardım Merkezi"],
   ["/iletisim", "İletişim"],

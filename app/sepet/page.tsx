@@ -7,6 +7,7 @@ import { paymentConfigured } from "@/lib/payments";
 import SepetClient from "./SepetClient";
 
 export const metadata = {
+  robots: { index: false, follow: true },
   title: "Sepetim | Gri Akvaryum",
   description: "Sepetinizdeki ürünleri görüntüleyin ve siparişinizi tamamlayın.",
 };

@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit --incremental false",
     "images:sync": "node scripts/sync-product-images.mjs --refresh-catalog",
     "images:verify": "node scripts/verify-product-images.mjs",
+    "seo:verify": "node scripts/verify-seo.mjs",
     "test:e2e": "playwright test",
     "test:database": "node scripts/test-relational.mjs",
     "build:isolated": "node scripts/isolated-build.mjs",

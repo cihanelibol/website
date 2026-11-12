@@ -12,7 +12,7 @@ import { IyzicoCheckoutNote } from "@/components/PaymentLogos";
 import { addReviewAction } from "./actions";
 import {
   formatPrice,
-  getAllProducts,  type EtProduct,
+  type EtProduct,
 } from "@/lib/easytrade";
 import {
   BRANDS,
@@ -23,6 +23,9 @@ import {
 import { CONTACT } from "@/lib/site";
 import { getArticle } from "@/lib/rehber";
 import { getReviews, ratingSummary } from "@/lib/reviews";
+import { getCatalogProducts } from "@/lib/catalog-data";
+import { breadcrumbs, pageMetadata, productSchema } from "@/lib/seo";
+import JsonLd from "@/components/JsonLd";
 
 type Params = Promise<{ id: string }>;
 
@@ -31,13 +34,11 @@ export const maxDuration = 60;
 
 export async function generateMetadata({ params }: { params: Params }) {
   const { id } = await params;
-  const all = await getAllProducts();
+  if (!/^[1-9]\d*$/.test(id) || !Number.isSafeInteger(Number(id))) notFound();
+  const all = await getCatalogProducts();
   const product = all.find((p) => p.id === Number(id));
-  if (!product) return { title: "Ürün Bulunamadı | Gri Akvaryum" };
-  return {
-    title: `${product.name} | Gri Akvaryum`,
-    description: `${product.name} - ${formatPrice(product.price_with_tax)} KDV dahil. Gri Akvaryum güvencesiyle.`,
-  };
+  if (!product) notFound();
+  return pageMetadata(`${product.name} | Gri Akvaryum`, `${product.name} - ${formatPrice(product.price_with_tax)} KDV dahil. Ürün bilgileri ve güncel stok. Gri Akvaryum Eminönü mağazasından seçim desteği.`, `/urunler/${product.id}`, product.images.find(i => i.is_primary)?.url ?? product.images[0]?.url);
 }
 
 function Stars({ value, size = "text-base" }: { value: number; size?: string }) {
@@ -59,9 +60,9 @@ export default async function ProductDetailPage({
 }) {
   const { id } = await params;
   const productId = Number(id);
-  if (!Number.isInteger(productId)) notFound();
+  if (!/^[1-9]\d*$/.test(id) || !Number.isSafeInteger(productId)) notFound();
 
-  const all = await getAllProducts();
+  const all = await getCatalogProducts();
   const product = all.find((p) => p.id === productId);
   if (!product) notFound();
 
@@ -100,8 +101,12 @@ export default async function ProductDetailPage({
   return (
     <>
       <Navbar />
+      <JsonLd data={[
+        productSchema(product, { count: reviewCount, average }),
+        breadcrumbs([{ name: "Ana Sayfa", path: "/" }, { name: "Ürünler", path: "/urunler" }, { name: product.name, path: `/urunler/${product.id}` }]),
+      ]} />
       {/* Üye denetim kaydı: ürün görüntüleme olayı */}
-      <ActivityPing productId={product.id} productName={product.name} />
+      <ActivityPing productId={product.id} productName={product.name} price={product.price_with_tax} />
       <main id="main-content" className="store-container store-product-detail min-h-svh pb-20 pt-24">
         {/* Kırıntı */}
         <nav aria-label="Sayfa yolu" className="mb-6 text-xs text-muted">
@@ -128,7 +133,8 @@ export default async function ProductDetailPage({
         {/* Üst bölüm: galeri + bilgi */}
         <div className={`store-detail-grid grid gap-8 lg:grid-cols-[minmax(0,480px)_1fr] lg:gap-12${images.length ? "" : " store-detail-no-image"}`}>
           <ImageGallery
-            images={images}            alt={product.name}
+            images={images}
+            alt={product.name}
           />
 
           <div className="min-w-0">

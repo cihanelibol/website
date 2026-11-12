@@ -15,7 +15,8 @@ import {
   getCategory,
   getRelatedArticles,
 } from "@/lib/rehber";
-import { SITE_URL } from "@/lib/site";
+import { CONTACT, SITE_URL } from "@/lib/site";
+import { jsonLdString } from "@/lib/seo";
 
 type Params = Promise<{ slug: string }>;
 
@@ -118,7 +119,7 @@ export default async function RehberMakalePage({
         <script
           nonce={nonce}
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }}
         />
 
         {/* Breadcrumb */}
@@ -337,7 +338,7 @@ export default async function RehberMakalePage({
                 su değerlerinizle birlikte yazın.
               </p>
               <a
-                href="https://wa.me/900000000000"
+                href={CONTACT.whatsappHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-5 inline-block rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 px-7 py-3 font-semibold text-slate-950 transition-transform hover:scale-105"

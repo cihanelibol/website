@@ -3,12 +3,9 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { CONTACT } from "@/lib/site";
 import IletisimForm from "./IletisimForm";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "İletişim | Gri Akvaryum",
-  description:
-    "Gri Akvaryum & Balık Galerisi - Eminönü, Fatih/İstanbul. Adres, telefon, çalışma saatleri ve iletişim formu.",
-};
+export const metadata = pageMetadata("İletişim ve Adres | Gri Akvaryum Eminönü", "Gri Akvaryum & Balık Galerisi - Eminönü, Fatih/İstanbul. Adres, telefon, çalışma saatleri ve iletişim formu.", "/iletisim");
 
 const infoCards = [
   {

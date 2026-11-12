@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const options = [
   { value: "default", label: "Önerilen Sıralama" },
@@ -10,6 +10,7 @@ const options = [
 
 export default function SortSelect() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const current = searchParams.get("sirala") ?? "default";
 
@@ -19,7 +20,7 @@ export default function SortSelect() {
     else params.set("sirala", value);
     params.delete("sayfa"); // sıralama değişince ilk sayfaya dön
     const qs = params.toString();
-    router.replace(qs ? `/urunler?${qs}` : "/urunler", { scroll: false });
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   };
 
   return (

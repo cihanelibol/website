@@ -6,6 +6,7 @@ import { googleConfigured } from "@/lib/auth";
 import GirisForm from "./GirisForm";
 
 export const metadata = {
+  robots: { index: false, follow: true },
   title: "Giriş Yap | Gri Akvaryum",
   description: "Gri Akvaryum hesabınıza giriş yapın.",
 };
