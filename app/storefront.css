@@ -26,6 +26,11 @@
   --store-page-width: 1480px;
   --store-gutter: 24px;
   --font-system: Inter, "Segoe UI", system-ui, sans-serif;
+  --store-mobile-title: 1.75rem;
+  --store-mobile-section: 1.5rem;
+  --store-mobile-card-title: 1rem;
+  --store-mobile-copy: 0.875rem;
+  --store-mobile-label: 0.75rem;
   --background: #f4f8fb;
   --surface: #fff;
   --foreground: #061e30;
@@ -2556,3 +2561,36 @@ main p a, .store-account-help a { text-decoration: underline; text-underline-off
 }
 
 @media (max-width: 380px) { .store-contact-assurance { display: none; } }
+
+/* Shared type roles for the mobile storefront and its compact content cards. */
+@media (max-width: 600px) {
+  .store-home .store-shortcuts {
+    grid-template-columns: 1fr;
+  }
+  .store-home .store-shortcuts strong,
+  .store-home .store-trust h2 {
+    font-size: var(--store-mobile-card-title);
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .store-home .store-shortcuts span:not(.store-shortcut-arrow),
+  .store-home .store-trust p,
+  .store-home .store-trust-link,
+  .store-home .store-section-heading p:last-child,
+  .store-home .store-section-heading > a,
+  .store-home .store-support p,
+  .store-home .store-button {
+    font-size: var(--store-mobile-copy);
+    line-height: 1.5;
+  }
+  .store-home .store-section-heading h2,
+  .store-home .store-support h2 {
+    font-size: var(--store-mobile-section);
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  .store-search-hint {
+    text-overflow: ellipsis;
+  }
+}

@@ -73,10 +73,13 @@
   .hero { grid-template-columns: minmax(0, 1fr); grid-template-rows: 240px auto; }
   .photos { grid-column: 1; grid-row: 1; min-height: 0; }
   .content { grid-column: 1; grid-row: 2; padding: 22px 20px; gap: 20px; }
-  .motto { font-size: 28px; }
-  .hero .contactTrigger { right: 16px; bottom: 16px; }
+  .motto { font-size: var(--store-mobile-title); line-height: 1.2; letter-spacing: -0.025em; }
+  .services { font-size: var(--store-mobile-copy); line-height: 1.5; text-wrap: pretty; }
+  .hero .contactTrigger { right: 16px; bottom: 16px; font-size: var(--store-mobile-copy); }
   .reviewHeading a { min-height: 36px; }
-  .review blockquote { margin-bottom: 8px; }
+  .reviewHeading a, .review figcaption { font-size: var(--store-mobile-label); line-height: 1.5; }
+  .review blockquote { margin-bottom: 8px; font-size: var(--store-mobile-copy); line-height: 1.5; }
+  .reviewQuote { height: 4.5em; -webkit-line-clamp: 3; line-clamp: 3; }
 }
 @media (max-width: 380px) {
   .hero { grid-template-rows: 210px auto; }
