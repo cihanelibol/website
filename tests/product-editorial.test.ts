@@ -35,8 +35,8 @@ it("uses the same description in visible text and product schema without inventi
   expect(productSchema({ ...product, description, has_variations: true }, { count: 0, average: 0 })).not.toHaveProperty("offers");
 });
 
-it("has traceable, identity-bound content for all 50 selected stock items", () => {
-  expect(Object.keys(manifest)).toHaveLength(50);
+it("has traceable, identity-bound content for all 158 selected stock items", () => {
+  expect(Object.keys(manifest)).toHaveLength(158);
   const summaries = new Set<string>();
   for (const [id, entry] of Object.entries(manifest)) {
     expect(entry.sku).toBeTruthy();
@@ -50,5 +50,5 @@ it("has traceable, identity-bound content for all 50 selected stock items", () =
     expect(getProductEditorial({ ...product, id: Number(id), name: entry.name, sku: entry.sku, barcode: entry.barcode })).toEqual(entry);
     summaries.add(entry.summary);
   }
-  expect(summaries.size).toBe(50);
+  expect(summaries.size).toBe(158);
 });

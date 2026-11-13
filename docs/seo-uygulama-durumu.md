@@ -69,7 +69,7 @@ node scripts/verify-seo-browser.mjs https://griakvaryum.com
 - Search Console mülkünde `https://griakvaryum.com/sitemap.xml` işlenme sonucunun ve URL denetiminin kontrolü. Kullanıcı sitemap gönderimini tamamladığını bildirdi.
 - Analytics raporlarının hesap içinde doğrulanması, Search Console bağlantısı ve önemli olayların seçimi. Yayımlanmış hedefin varlığı, raporlardaki verinin doğrulanmasıyla aynı şey değildir.
 - Google İşletme Profili güncellemeleri ve eski işletme kayıtlarının doğrulanması.
-- Stok öncelikli ilk 50 ürünün açıklamaları hazır: [ürün içerik paketi](seo-urun-icerikleri.md). Diğer ürünlerin açıklamaları ve eksik fotoğraflar devam ediyor; marj verisi henüz yok.
+- Stok öncelikli 158 ürünün açıklamaları hazır (50 + 108): [ürün içerik paketi](seo-urun-icerikleri.md). Diğer ürünlerin açıklamaları ve eksik fotoğraflar devam ediyor; marj verisi henüz yok.
 - Gerçek uzman/yazar bilgileri, rehber güncellemeleri, özgün video ve mağaza vaka içerikleri.
 - Tahsilat/ödeme iş akışı, tam checkout dönüşüm hunisi ve uygun ürünlerle Merchant Center hazırlığı.
 - Saha Core Web Vitals başlangıcı, katalog API darboğazının daha kapsamlı optimizasyonu ve açılış animasyonu deneyi.

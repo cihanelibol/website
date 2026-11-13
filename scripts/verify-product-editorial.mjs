@@ -35,7 +35,7 @@ try {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
   await context.route(/https:\/\/[^/]*(googletagmanager|google-analytics)\.com\//, route => route.abort());
   const page = await context.newPage();
-  for (const id of ['3751779', '3751304']) {
+  for (const id of ['3751779', '3751304', '3751532', '3751296']) {
     await page.goto(new URL(`/urunler/${id}`, base).href);
     const entry = manifest[id];
     await page.getByText(entry.summary, { exact: false }).first().waitFor();
@@ -44,6 +44,6 @@ try {
   }
 } finally { await browser.close(); }
 await mkdir('.gstack/seo-evidence', { recursive: true });
-const report = { checkedAt: new Date().toISOString(), base: base.href, status: 'passed', products: results.length, checks: 'HTTP, identity, visible description, matching Product JSON-LD, source link, metadata, canonical, H1, indexability; two mobile product pages', results };
+const report = { checkedAt: new Date().toISOString(), base: base.href, status: 'passed', products: results.length, checks: 'HTTP, identity, visible description, matching Product JSON-LD, source link, metadata, canonical, H1, indexability; four mobile product pages', results };
 await writeFile('.gstack/seo-evidence/product-editorial-verification.json', JSON.stringify(report, null, 2));
 console.log(JSON.stringify({ ...report, results: undefined }, null, 2));

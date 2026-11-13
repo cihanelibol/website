@@ -22,12 +22,23 @@ EHEIM'in resmi model tabloları; Sera'nın resmi ürün sayfaları kullanıldı.
 
 Sera'nın güncel isimleri ile katalogdaki Nature isimleri ürün ailesi ve ürün koduyla eşleştirildi. Yeni ambalajların besin yüzdeleri, gramajları veya sağlık iddiaları eski ambalaja taşınmadı. Vipan Baby 2200 ml ürünündeki katalog/üretici gramaj uyuşmazlığı (1,3 kg / 1,1 kg) nedeniyle bu ürün ilk pakete alınmadı. Güncel kaynakta ambalajı eşleştirilemeyen bazı 1000 ml Goldy ürünleri de bekliyor. Kaynaklar tam çeviri yerine kısa, özgün seçim metinleriyle özetlendi.
 
+## İkinci ürün paketi: 108 ek kayıt
+
+13 Kasım 2026 tekrar taramasında ilk 50 açıklama canlıda görüldü; 225 boş açıklama ve 28 eksik görsel kaldı. İkinci paket 41 yem ile filtre kategorisindeki 67 cihaz, malzeme ve hortumu kapsar. Toplam açıklama sayısı 158'dir.
+
+Yeni içerikler EHEIM Aqua, Biopower, Experience, Classic, Professionel 4+, Mini ve Aqua Corner filtreleri; karbon, mekanik ve biyolojik filtre malzemeleri; Sera UVC Xtreme, PreFix, filtre hortumları ve çeşitli yem ailelerini içerir. Classic paket kodları ayrı tutulur; aynı model adıyla satılan farklı kutuların içeriği eşit kabul edilmez. PreFix'in motorsuz olduğu, uygun hortum ölçüsü, ana/ek yem ayrımı ve kimyasal malzemelerin ölçüm gereksinimi açıklanır.
+
+45 ayrı üretici kaynağının bağlantısı denetlendi. Arama önbelleğinde görünen eski Raffy I adresi canlıda 404 verdiği için güncel Turtle Gammarus Snack sayfasıyla değiştirildi. Raffy I 3800 ml kaydının katalogdaki 470 g değeri güncel üreticide 500 g olduğundan o ambalaj bekletildi; yerine üreticinin Türkçe sayfasıyla doğrulanan Artemia Mix 18 g eklendi. İlk 50 kaydın içeriği korunmuştur.
+
+Kalan 117 ürün [devam listesinde](seo-urun-kuyrugu.csv) ürün kodu ve araştırma durumuyla kayıtlıdır. Listede kaynağı henüz araştırılacak ürünler ile tespit edilmiş ad/gramaj uyuşmazlıkları ayrı belirtilir. Bu liste fiziksel stok teyidi veya tüm kalan ürünlerde sorun bulunduğu anlamına gelmez.
+
 ## Kontroller
 
 - 91 birim testi; kimlik uyuşmazlığı, mağaza açıklamasının önceliği, katalog verisinin değişmemesi ve schema/metin eşleşmesi dahil.
 - TypeScript, değişen dosyalarda ESLint, izole production build ve 17 HTTP/tarayıcı testi.
-- `node scripts/verify-product-editorial.mjs https://griakvaryum.com`: 50 sayfada HTTP, kimlik, görünür açıklama, Product verisi, metadata, kaynak, canonical, H1 ve indekslenebilirlik kontrolü; iki üründe mobil kontrol. QA sırasında Google ölçüm istekleri engellenir.
+- İkinci pakette ürün içerikleri ve SEO için 19 hedefli test, ESLint ve TypeScript içeren izole production build çalıştırılır; GitHub CI genel kontrolleri ayrıca yürütür.
+- `node scripts/verify-product-editorial.mjs https://griakvaryum.com`: manifestteki tüm sayfalarda (şu an 158) HTTP, kimlik, görünür açıklama, Product verisi, metadata, kaynak, canonical, H1 ve indekslenebilirlik kontrolü; dört üründe mobil kontrol. QA sırasında Google ölçüm istekleri engellenir.
 
 ## Sıradaki işler
 
-İlk taramadaki diğer 225 ürünün açıklama kuyruğu sürüyor. Eksik 28 görsel için doğru model/ambalaj fotoğrafı temin edilmeli. Isıtıcılar stoklu kategoriye geldiğinde aynı doğrulama akışına alınmalı. Search Console indeksleme ve Analytics hesap içi rapor kontrolleri halen ayrı işlerdir; bu paketin yayımlanması sıralama veya indeksleme sonucunun ölçüldüğü anlamına gelmez.
+Kalan 117 ürünün açıklama kuyruğu sürüyor. Eksik 28 görsel için doğru model/ambalaj fotoğrafı temin edilmeli. Isıtıcılar stoklu kategoriye geldiğinde aynı doğrulama akışına alınmalı. Search Console indeksleme ve Analytics hesap içi rapor kontrolleri halen ayrı işlerdir; bu paketin yayımlanması sıralama veya indeksleme sonucunun ölçüldüğü anlamına gelmez.
