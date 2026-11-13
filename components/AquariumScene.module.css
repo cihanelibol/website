@@ -1,0 +1,79 @@
+.scene { min-width: 0; min-height: 890px; padding: 66px clamp(32px, 5.8vw, 110px) 350px; color: #eff9ee; }
+.backdrop { position: absolute; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(ellipse at 31% -20%, #78b8ae80, transparent 57%), radial-gradient(ellipse at 1% 65%, #175c6477, transparent 60%), linear-gradient(165deg, #1c626b, #0b3b4d 43%, #062b39 80%, #102e34); }
+.world { --ambient: .88; position: absolute; inset: 0; z-index: 1; overflow: clip; pointer-events: none; isolation: isolate; box-shadow: inset 0 0 70px #001a3d5c; }
+.atmosphere { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.backgroundPhoto { object-fit: cover; object-position: center bottom; filter: brightness(.74) saturate(.77); transition: filter 1s ease; }
+.waterShade { position: absolute; inset: 0; background: linear-gradient(90deg, #032b3b44, transparent 45%, #001c3655), linear-gradient(0deg, #011e3222, transparent 45%, #02283d22); }
+.rays { position: absolute; inset: -40% -20% -20%; transform-origin: 30% 0; background: conic-gradient(from 145deg at 32% 0%, transparent 0deg, #c7e8bf15 5deg, transparent 10deg, transparent 18deg, #d1f0d120 22deg, transparent 30deg, transparent 43deg, #b4e9d610 47deg, transparent 54deg); filter: blur(7px); animation: ray-drift 22s ease-in-out infinite alternate; }
+.surface { position: absolute; inset: 0 0 auto; height: 3px; opacity: .65; background: linear-gradient(90deg, transparent, #b4e4ce88 30%, #badcc544 65%, transparent); box-shadow: 0 3px 35px 10px #b2e3cd15; }
+.distantReef { position: absolute; inset: auto 0 0; height: 180px; background: radial-gradient(ellipse at 10% 100%, #0d394577, transparent 60%), radial-gradient(ellipse at 95% 100%, #133d46aa, transparent 45%); }
+.caustics { position: absolute; left: -10%; right: -10%; bottom: 0; height: 25%; opacity: .16; background: repeating-radial-gradient(ellipse at 35% 110%, transparent 0 24px, #d4f2cb66 25px 27px, transparent 31px 68px); transform: scaleY(.55); transform-origin: bottom; filter: blur(2px); animation: caustic-flow 11s ease-in-out infinite alternate; }
+.airColumn { position: absolute; bottom: 12%; width: 25px; }
+.airColumn i { position: absolute; bottom: 0; width: var(--size); height: var(--size); border: 1px solid #d6f5ed99; border-radius: 50%; box-shadow: inset 1px 1px 2px #fff5; opacity: 0; animation: air-rise var(--duration) var(--delay) linear infinite; }
+.airColumn i:nth-child(2n) { left: 12px; }
+.particle { position: absolute; left: var(--x); top: 103%; width: var(--size); height: var(--size); border: 1px solid #dcfff660; border-radius: 50%; background: #b4e4da22; animation: drift var(--duration) var(--delay) linear infinite; }
+.particle:nth-child(3n) { border: 0; background: #dcfff669; }
+.caption { position: relative; z-index: 2; width: fit-content; pointer-events: none; font-family: var(--font-aquarium), var(--font-system); }
+.caption h2 { margin: 0; font-size: clamp(34px, 3.15vw, 50px); font-weight: 500; letter-spacing: -.035em; line-height: 1.2; text-wrap: balance; color: #123d48; }
+.caption p { margin: 22px 0 0; color: #345d66; font-size: 14px; line-height: 1.8; font-weight: 400; }
+.skip { position: absolute; left: 0; top: -60px; padding: 12px 18px; border-radius: 8px; color: #082f3d; background: #d0f0dd; transform: translateY(-200px); pointer-events: auto; }
+.skip:focus { transform: none; }
+.fish { position: absolute; margin: 0; padding: 0; width: var(--fish-size); height: calc(var(--fish-size) * .6); border: 0; border-radius: 45%; color: inherit; background: none; cursor: pointer; pointer-events: auto; transform: translate(-50%, -50%); opacity: var(--depth); touch-action: pan-y; -webkit-tap-highlight-color: transparent; will-change: transform; }
+.fish[data-positioned="true"] { left: 0 !important; top: 0 !important; }
+.fish[data-layer="back"] { z-index: 2; }
+.fish[data-layer="front"] { z-index: 4; }
+.fishHeading { display: block; width: 100%; height: 100%; transform: rotate(var(--heading, 0deg)) scaleX(var(--facing, 1)); transition: transform .32s ease-out; }
+.fishArt { position: relative; display: block; width: 100%; height: 100%; filter: brightness(var(--ambient)) saturate(.86); }
+.fishPhoto { object-fit: contain; user-select: none; pointer-events: none; }
+.photoBody, .photoTail { position: absolute; inset: 0; display: block; }
+.photoBody { mask-image: linear-gradient(90deg, transparent 23%, #000 29%); }
+.photoTail { mask-image: linear-gradient(90deg, #000 25%, transparent 30%); transform-origin: 29% 50%; animation: photo-tail-beat 1.05s var(--swim-delay) ease-in-out infinite alternate; }
+.fish[data-state="flee"] .photoTail { animation-duration: .16s; }
+.fish:hover .fishArt { filter: drop-shadow(0 0 9px #d6fbe73a); }
+.fish:focus-visible, .prop:focus-visible { outline: 2px solid #daf6d5; outline-offset: 6px; }
+.fish:active, .prop:active { filter: brightness(1.2); }
+.garden { position: absolute; inset: 0; pointer-events: none; }
+.prop { position: absolute; bottom: var(--bottom); width: var(--prop-size); height: calc(var(--prop-size) * 1.3333); margin: 0; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; pointer-events: auto; transform: translateX(-50%); transform-origin: 50% 100%; touch-action: pan-y; -webkit-tap-highlight-color: transparent; }
+.prop[data-prop="rock"], .prop[data-prop="arch"] { height: calc(var(--prop-size) * .5); }
+.prop[data-prop="coral"], .prop[data-prop="fan"] { height: calc(var(--prop-size) * 1.05); }
+.prop[data-prop="anemone"] { height: calc(var(--prop-size) * .66); }
+.prop[data-layer="back"] { z-index: 1; opacity: .6; }
+.prop[data-layer="middle"] { z-index: 3; }
+.prop[data-layer="front"] { z-index: 5; }
+.propSway { position: relative; display: block; height: 100%; transform-origin: 50% 100%; transform: rotate(calc(var(--tilt) + var(--pointer-sway, 0deg))) scaleX(var(--prop-facing, 1)); }
+.propPhoto { object-fit: contain; object-position: center bottom; user-select: none; pointer-events: none; filter: brightness(var(--ambient)) saturate(.73) drop-shadow(0 7px 5px #001f2c44); }
+.prop:is([data-prop="plant"], [data-prop="fan"], [data-prop="anemone"]) .propPhoto { transform-origin: 50% 100%; animation: plant-sway 7s var(--sway-delay) ease-in-out infinite alternate; will-change: transform; }
+.propBubbles { position: absolute; left: 50%; top: 35%; width: 1px; height: 1px; pointer-events: none; }
+.propBubbles i { position: absolute; width: 7px; height: 7px; border: 1px solid #dcf5eeb3; border-radius: 50%; opacity: 0; }
+[data-reacting="true"] .propBubbles i { animation: burst 1.2s ease-out both; }
+.propBubbles i:nth-child(2) { margin-left: -16px; animation-delay: .1s; width: 4px; height: 4px; }
+.propBubbles i:nth-child(3) { margin-left: 12px; animation-delay: .2s; width: 5px; height: 5px; }
+.world[data-running="false"] *, .world[data-calm="true"] .particle { animation-play-state: paused !important; }
+.world[data-running="false"] .fishHeading { transition: none; }
+.world[data-quality="low"] .fish[data-species="anthias"][data-layer="back"], .world[data-quality="low"] .particle, .world[data-quality="low"] .airColumn { display: none; }
+.world[data-quality="low"] .rays, .world[data-quality="low"] .caustics { animation: none; filter: none; }
+.world[data-quality="low"] .prop[data-layer="back"] .propPhoto { animation: none; filter: brightness(var(--ambient)); }
+@keyframes photo-tail-beat { from { transform: perspective(180px) rotateY(-18deg) skewY(-3deg); } to { transform: perspective(180px) rotateY(18deg) skewY(3deg); } }
+@keyframes plant-sway { from { transform: skewX(-2deg) rotate(-1deg); } to { transform: skewX(2deg) rotate(1deg); } }
+@keyframes ray-drift { from { transform: rotate(-5deg); opacity: .6; } to { transform: rotate(4deg); opacity: 1; } }
+@keyframes drift { 0% { transform: translate(0, 0); opacity: 0; } 15%, 80% { opacity: .45; } 100% { transform: translate(36px, -1000px); opacity: 0; } }
+@keyframes burst { 0% { transform: translate(0, 0) scale(.4); opacity: 0; } 15% { opacity: .8; } 100% { transform: translate(12px, -90px) scale(1.2); opacity: 0; } }
+@keyframes caustic-flow { from { transform: scaleY(.55) translateX(-3%); } to { transform: scaleY(.6) translateX(3%); } }
+@keyframes air-rise { 0% { transform: translate(0, 0) scale(.6); opacity: 0; } 10%, 75% { opacity: .45; } 100% { transform: translate(20px, -650px) scale(1.1); opacity: 0; } }
+@media (min-width: 701px) and (max-width: 1000px) { .scene { padding: 60px 32px 330px; } .caption h2 { font-size: 35px; } .fish { width: calc(var(--fish-size) * .8); height: calc(var(--fish-size) * .48); } .prop { width: calc(var(--prop-size) * .8); } }
+@media (max-width: 700px) {
+  .scene { min-height: 0; padding: 28px 26px 30px; }
+  .world { bottom: 0; height: auto; }
+  .backgroundPhoto { object-position: 32% bottom; }
+  .caption h2 { font-size: clamp(29px, 7.5vw, 39px); line-height: 1.15; }
+  .caption p { margin-top: 15px; font-size: 12px; line-height: 1.8; }
+  .fish { width: calc(var(--fish-size) * .62); height: calc(var(--fish-size) * .372); }
+  .fish[data-mobile="false"], .prop[data-mobile="false"] { display: none; }
+  .prop { width: calc(var(--prop-size) * .55); height: calc(var(--prop-size) * .73); bottom: max(var(--bottom), 9%); }
+  .prop[data-prop="rock"], .prop[data-prop="arch"] { height: calc(var(--prop-size) * .275); }
+  .prop[data-prop="coral"], .prop[data-prop="fan"] { height: calc(var(--prop-size) * .58); }
+  .prop[data-prop="anemone"] { height: calc(var(--prop-size) * .36); }
+}
+@media (prefers-reduced-motion: reduce) { .world * { animation: none !important; transition: none !important; } .particle { display: none; } }
+
+.whiteFade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, #fff 0%, #fffffff5 8%, #ffffffc9 22%, #ffffff70 37%, #ffffff20 51%, #ffffff00 65%); }

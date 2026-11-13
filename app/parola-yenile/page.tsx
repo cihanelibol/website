@@ -1,3 +1,3 @@
-import AccountRecovery from "@/components/AccountRecovery";
+import AuthShell from "@/components/AuthShell";
 export const metadata = { title: "Parola yenileme", robots: { index: false, follow: false } };
-export default function RecoveryPage() { return <main id="main-content" className="store-container"><AccountRecovery /></main>; }
+export default function RecoveryPage() { return <AuthShell initialScreen="recovery" />; }

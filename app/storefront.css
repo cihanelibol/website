@@ -192,6 +192,7 @@ textarea:focus-visible {
   top: calc(var(--store-contact-height) + env(safe-area-inset-top, 0px));
   z-index: 50;
 }
+.store-header[data-seamless="true"] { border-bottom: 0; }
 .store-header-main {
   display: flex;
   align-items: center;
@@ -435,6 +436,10 @@ textarea:focus-visible {
 .store-categories > a:hover {
   background: var(--store-hover-tint);
 }
+.store-categories > a > span:first-child:not(:last-child) {
+  min-width: 0;
+  flex: 1;
+}
 .store-categories > a > span:last-child {
   transition: transform 0.3s var(--store-ease-out), color 0.2s;
 }
@@ -450,6 +455,9 @@ textarea:focus-visible {
 }
 .store-categories small {
   display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 12px;
   color: var(--muted);
   margin-top: 2px;
@@ -2009,12 +2017,13 @@ main.store-catalog-page .store-catalog-sort {
 }
 @media (max-width: 800px) {
   :root {
-    --store-contact-height: 72px;
+    --store-contact-height: 44px;
   }
   .store-topbar > .store-container {
-    flex-direction: column;
-    justify-content: center;
-    gap: 0;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 8px;
+    white-space: nowrap;
   }
   .store-topbar .store-container > div:first-child > span {
     display: none;
@@ -2545,3 +2554,5 @@ main p a, .store-account-help a { text-decoration: underline; text-underline-off
   .store-home .store-categories h2 { grid-column: 1 / -1; }
   .store-home .store-categories .store-all-categories { margin-top: 0; }
 }
+
+@media (max-width: 380px) { .store-contact-assurance { display: none; } }

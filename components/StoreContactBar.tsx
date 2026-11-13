@@ -5,7 +5,7 @@ export default function StoreContactBar() {
     <section className="store-topbar" aria-label="Mağaza iletişim bilgileri">
       <div className="store-container">
         <div>
-          <strong>Gri Akvaryum güvencesiyle</strong>
+          <strong>Gri Akvaryum<span className="store-contact-assurance"> güvencesiyle</span></strong>
           <span className="store-contact-support">Uzman desteği</span>
           <span>Mağaza: {CONTACT.hours.toLocaleLowerCase("tr-TR")}</span>
         </div>
