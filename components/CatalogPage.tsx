@@ -1,5 +1,6 @@
 import AppIcon from "@/components/AppIcon";
 import Link from "next/link";
+import { getArticle } from "@/lib/rehber";
 import { Suspense } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -249,7 +250,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
             {page === 1 && !search && (
               <div className="mb-6 rounded-2xl border border-cyan-400/15 p-5 text-sm leading-relaxed text-muted">
                 <p>{description}</p>
-                {content && <Link className="mt-2 inline-block font-semibold text-accent" href={`/rehber/${content.guide}`}>Seçim ve kullanım rehberini okuyun →</Link>}
+                {content && <Link className="mt-2 inline-block font-semibold text-accent" href={`/rehber/${content.guide}`}>{getArticle(content.guide)?.title ?? "Seçim ve kullanım rehberi"} →</Link>}
               </div>
             )}
 

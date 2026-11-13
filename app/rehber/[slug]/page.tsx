@@ -16,7 +16,8 @@ import {
   getRelatedArticles,
 } from "@/lib/rehber";
 import { CONTACT, SITE_URL } from "@/lib/site";
-import { jsonLdString } from "@/lib/seo";
+import { absoluteUrl, jsonLdString, pageMetadata } from "@/lib/seo";
+import { guideCategoryLinks } from "@/lib/guide-catalog";
 
 type Params = Promise<{ slug: string }>;
 
@@ -32,22 +33,18 @@ export async function generateMetadata({
   const { slug } = await params;
   const article = getArticle(slug);
   if (!article) return {};
+  const base = pageMetadata(`${article.title} | Gri Akvaryum Yardım Merkezi`, article.description, `/rehber/${article.slug}`);
   return {
-    title: `${article.title} | Gri Akvaryum Yardım Merkezi`,
-    description: article.description,
+    ...base,
     keywords: article.keywords,
     alternates: { canonical: `/rehber/${article.slug}` },
     openGraph: {
+      ...base.openGraph,
       title: article.title,
       description: article.description,
       url: `/rehber/${article.slug}`,
       type: "article",
       modifiedTime: article.updated,
-    },
-    twitter: {
-      card: "summary",
-      title: article.title,
-      description: article.description,
     },
   };
 }
@@ -65,6 +62,7 @@ export default async function RehberMakalePage({
   const category = getCategory(article.category);
   const { prev, next } = getAdjacentArticles(slug);
   const related = getRelatedArticles(article);
+  const shoppingLinks = guideCategoryLinks(article.slug);
   const toc = article.blocks.filter((b) => b.type === "h2");
 
   const jsonLd: Record<string, unknown>[] = [
@@ -75,8 +73,9 @@ export default async function RehberMakalePage({
       description: article.description,
       dateModified: article.updated,
       inLanguage: "tr",
-      author: { "@type": "Organization", name: "Gri Akvaryum" },
-      publisher: { "@type": "Organization", name: "Gri Akvaryum" },
+      author: { "@type": "Organization", name: "Gri Akvaryum", url: absoluteUrl("/magaza/eminonu") },
+      publisher: { "@type": "Organization", name: "Gri Akvaryum", url: SITE_URL, logo: { "@type": "ImageObject", url: absoluteUrl("/logo-mark.png") } },
+      ...(article.sources?.length ? { citation: article.sources.map(source => ({ "@type": "CreativeWork", name: source.title, url: source.url })) } : {}),
       mainEntityOfPage: `${SITE_URL}/rehber/${article.slug}`,
     },
     {
@@ -208,6 +207,7 @@ export default async function RehberMakalePage({
                 {article.description}
               </p>
               <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-muted">
+                <Link href="/magaza/eminonu" className="underline underline-offset-4 hover:text-cyan-300">Yayınlayan: Gri Akvaryum</Link>
                 <span className="rounded-full bg-cyan-400/10 px-3 py-1 font-medium text-cyan-300">
                   {article.minutes} dk okuma
                 </span>
@@ -246,6 +246,33 @@ export default async function RehberMakalePage({
             <div className="space-y-6">
               <ArticleBlocks blocks={article.blocks} />
             </div>
+
+            {article.sources?.length ? (
+              <section aria-labelledby="makale-kaynaklar" className="mt-10 rounded-2xl border border-cyan-400/15 p-5">
+                <h2 id="makale-kaynaklar" className="font-display text-xl font-bold">Kaynaklar ve üretici kılavuzları</h2>
+                <p className="mt-2 text-sm text-muted">Aşağıdaki belgeler belirtilen model ve seri içindir. Kendi cihazınızın kılavuzunu esas alın.</p>
+                <ul className="mt-4 space-y-4">
+                  {article.sources.map(source => (
+                    <li key={source.url}>
+                      <a href={source.url} className="font-medium text-cyan-300 underline underline-offset-4">{source.title}</a>
+                      <p className="mt-1 text-sm text-muted">{source.note}</p>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+
+            {shoppingLinks.length > 0 && (
+              <section aria-labelledby="rehber-urunler" className="glass mt-10 rounded-2xl p-5 sm:p-7">
+                <h2 id="rehber-urunler" className="font-display text-xl font-bold">Bu rehberle ilgili ürün kategorileri</h2>
+                <p className="mt-2 text-sm leading-relaxed text-muted">Modelleri, ölçüleri ve güncel stok bilgisini karşılaştırın; akvaryumunuza uygunluğu ürün açıklamasından kontrol edin.</p>
+                <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {shoppingLinks.map(link => (
+                    <li key={link.href}><Link href={link.href} className="block rounded-xl border border-cyan-400/20 p-4 font-medium text-cyan-300 hover:bg-cyan-400/10">{link.title} →</Link></li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             {/* SSS */}
             {article.faq && article.faq.length > 0 && (

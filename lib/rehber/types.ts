@@ -33,6 +33,8 @@ export type Article = {
   faq?: Faq[];
   /** İlgili makale slug'ları */
   related?: string[];
+  /** Public primary sources for the editorial revision; never invented expert credentials. */
+  sources?: { title: string; url: string; note: string }[];
 };
 
 export type Category = {

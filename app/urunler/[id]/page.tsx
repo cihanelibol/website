@@ -26,6 +26,7 @@ import { getReviews, ratingSummary } from "@/lib/reviews";
 import { getCatalogProducts } from "@/lib/catalog-data";
 import { breadcrumbs, pageMetadata, productSchema } from "@/lib/seo";
 import JsonLd from "@/components/JsonLd";
+import { productCategoryLinks } from "@/lib/guide-catalog";
 
 type Params = Promise<{ id: string }>;
 
@@ -66,6 +67,7 @@ export default async function ProductDetailPage({
   const product = all.find((p) => p.id === productId);
   if (!product) notFound();
 
+  const categoryLinks = productCategoryLinks(product);
   const inStock = product.stock_quantity > 0;
   const lowStock = inStock && product.stock_quantity <= 5;
   const brand = BRANDS.find((b) => productMatchesBrand(product, b));
@@ -130,6 +132,14 @@ export default async function ProductDetailPage({
           )}
         </nav>
 
+        {categoryLinks.length > 0 && (
+          <nav aria-label="İlgili ürün kategorileri" className="mb-6 flex flex-wrap gap-2">
+            {categoryLinks.map(link => (
+              <Link key={link.href} href={link.href} className="rounded-full border border-cyan-400/20 px-3 py-2 text-sm text-cyan-300 hover:bg-cyan-400/10">{link.title}</Link>
+            ))}
+          </nav>
+        )}
+
         {/* Üst bölüm: galeri + bilgi */}
         <div className={`store-detail-grid grid gap-8 lg:grid-cols-[minmax(0,480px)_1fr] lg:gap-12${images.length ? "" : " store-detail-no-image"}`}>
           <ImageGallery
@@ -139,9 +149,9 @@ export default async function ProductDetailPage({
 
           <div className="min-w-0">
             {brand && (
-              <div className="mb-2 text-sm font-semibold uppercase tracking-wider text-cyan-300">
+              <Link href={`/marka/${brand.slug}`} className="mb-2 inline-block text-sm font-semibold uppercase tracking-wider text-cyan-300 hover:underline">
                 {brand.label}
-              </div>
+              </Link>
             )}
             <h1 className="font-display text-2xl font-bold leading-tight tracking-tight sm:text-4xl">
               {product.name}

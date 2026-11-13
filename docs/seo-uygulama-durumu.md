@@ -4,6 +4,8 @@
 
 13 Kasım güncellemesi: GitHub yazma engeli yeni `cihanelibol/website` deposuna taşıma ile çözüldü. SEO commit'leri yeni depoya gönderildi; Vercel bu deponun `main` dalına bağlandı. [Taşıma kaydı](github-tasima.md). Aşağıdaki 12 Kasım yayın kaydındaki erişim hatası eski depoya aittir.
 
+İkinci paket: [rehber içerikleri, iç bağlantılar ve performans başlangıç ölçümü](seo-ikinci-paket.md).
+
 ## Yayın sonucu
 
 - Üretim: https://griakvaryum.com — Vercel READY.
