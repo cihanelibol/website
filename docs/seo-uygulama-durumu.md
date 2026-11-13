@@ -16,6 +16,16 @@
 
 ## Uygulananlar
 
+### 13 Kasım takip kontrolü
+
+- Canlı `scripts/verify-seo.mjs` kontrolü tekrar başarılı: 1.959 sitemap adresi, 1.908 ürün; örnek ürün `/urunler/3755084`. Canonical, metadata, H1, schema, noindex, 308 ve 404 kontrolleri geçti.
+- `robots.txt` HTTP 200; genel taramaya izin veriyor ve doğru sitemap adresini bildiriyor. Bu, Google tarafından indekslenmenin doğrulandığı anlamına gelmez.
+- Canlı `scripts/verify-seo-browser.mjs` kontrolü başarılı: mobil yerleşim, sıralama adresi, analitik izin verme, tercihi hatırlama, geri alma ve tek betik yükleme.
+- Kullanıcının tercih ettiği GitHub hesabı `cihanelibol`. Kimliği doğrulanmış GitHub API yanıtında `griakvaryu/website` için `permissions.push=false`; bu depo için bekleyen davet bulunmadı. Depo sahibi tarafından erişim verilmesi gerekiyor. Token değeri bu kayda veya kaynak dosyalara eklenmedi.
+- Search Console indeksleme raporları ve GA4 rapor ekranı henüz doğrulanmadı. Bu hesap verileri için bağlı erişim gerekiyor; halka açık testler bunların yerine geçmez.
+
+### İlk teknik paket
+
 - Ürün site haritası: doğrulama anında 1.908 ürün, toplam 1.959 adres. Yalnızca ürün bulunan kategori/markalar dahil; katalog hatasında eksik başarılı sitemap yerine hata yanıtı.
 - 10 kategori şablonu için özgün seçim açıklaması ve mevcut rehber bağlantıları; ürün kapsamı olan marka sayfaları.
 - Kategori `/kategori/[slug]`, marka `/marka/[slug]`; eski filtre adreslerinden parametreleri koruyan HTTP 308.
