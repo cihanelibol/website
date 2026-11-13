@@ -1,15 +1,14 @@
 Gri Akvaryum & Balık Galerisi
 
 griakvaryum.com — Site Altyapı Rehberi
-Sitenin üç ayağı vardır: kod, veritabanı ve yayın. Her biri kendi alanında uzman bir serviste durur ve üçü de tek hesapla yönetilir.
+Sitenin üç ayağı vardır: kod, veritabanı ve yayın. Her biri ayrı bir serviste durur. GitHub deposu cihanelibol hesabında, yayın mevcut Vercel projesindedir.
 
-Üç servisteki giriş hesabı:
-griakvaryum@gmail.com
+GitHub hesabı: cihanelibol
 GitHub
 Kod
 Sitenin bütün kaynak kodu burada saklanır. Her değişikliğin tarihi ve içeriği kayıtlıdır; gerekirse herhangi bir eski sürüme geri dönülebilir. Kodun güvenli yedeği burasıdır.
 
-Depo: github.com/griakvaryu/website
+Depo: github.com/cihanelibol/website
 
 Neon
 Veritabanı

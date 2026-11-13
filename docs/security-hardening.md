@@ -142,7 +142,7 @@ npm run security:admin -- --user-id=USER_ID --expected-email=VERIFIED_EMAIL --ro
 
 ## Sonraki çalıştırma için somut durum
 
-- GitHub `griakvaryu/website`: bağlantı `pull=true`, `push/admin=false`. Kullanıcı yönetici bağlantısını tamamlayacağını bildirdi; henüz yetki değişmedi. Zorunlu kontroller dosyası hazır, platformda etkin değil.
+- GitHub 13 Kasım güncellemesi: aktif depo `cihanelibol/website`; `cihanelibol` için yönetici erişimi doğrulandı ve CODEOWNERS güncellendi. Eski `griakvaryu/website` deposundaki erişim engeli yeni depoya Git geçmişi aktarımıyla aşıldı. Zorunlu kontroller platformda etkinleştirildiği iddia edilmez. [Taşıma kaydı](github-tasima.md).
 - Vercel CLI 65.14.0 kurulu ve oturum açık; Node 24.x, fork koruması ve özel domain dışı deployment erişim koruması API'de görüldü. Preview verisinin üretimden ayrıldığı kanıtlanmadı.
 - Resend hesabı/doğrulanmış gönderici kullanıcıda var; son kontrol sırasında `RESEND_API_KEY`, `MAIL_FROM`, `APP_ORIGIN`, `CRON_SECRET` proje değişkenlerinde yoktu. Anahtarları sohbete göndermeyin.
 - Neon mevcut runtime bağlantısı `neondb_owner` kullanıyor; DB/schema oluşturma yetkisi var. Ayrı kısıtlı runtime rolüyle canlı cutover yapılmadı.

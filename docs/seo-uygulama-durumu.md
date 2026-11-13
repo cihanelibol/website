@@ -2,6 +2,8 @@
 
 İlk teknik paket uygulandı. Bu kayıt, 90 günlük planın tamamının bitirildiği anlamına gelmez.
 
+13 Kasım güncellemesi: GitHub yazma engeli yeni `cihanelibol/website` deposuna taşıma ile çözüldü. SEO commit'leri yeni depoya gönderildi; Vercel bu deponun `main` dalına bağlandı. [Taşıma kaydı](github-tasima.md). Aşağıdaki 12 Kasım yayın kaydındaki erişim hatası eski depoya aittir.
+
 ## Yayın sonucu
 
 - Üretim: https://griakvaryum.com — Vercel READY.

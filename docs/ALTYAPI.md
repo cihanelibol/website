@@ -1,25 +1,25 @@
 # Gri Akvaryum — Site Altyapı Rehberi
 
 griakvaryum.com sitesinin kodu, veritabanı ve yayını üç ayrı serviste durur.
-Üçü de tek hesapla yönetilir: **griakvaryum@gmail.com**
+GitHub hesabı: **cihanelibol**. Vercel projesi: **cihanelibols-projects/griakvaryum**.
 
 ## Bir bakışta
 
 | Ne | Nerede | Adres |
 |---|---|---|
-| Kod (sitenin kaynağı) | GitHub | github.com/griakvaryu/website |
+| Kod (sitenin kaynağı) | GitHub | github.com/cihanelibol/website |
 | Veritabanı (üyeler, yorumlar) | Neon | console.neon.tech |
 | Yayın / Hosting (sitenin kendisi) | Vercel | vercel.com |
 
-Üç serviste de giriş hesabı: **griakvaryum@gmail.com**
+GitHub taşıma kaydı: [13 Kasım 2026 geçişi](github-tasima.md).
 
 ## 1. GitHub — Kod
 
-Sitenin bütün kaynak kodu GitHub'daki `griakvaryu/website` deposunda saklanır.
+Sitenin bütün kaynak kodu GitHub'daki `cihanelibol/website` deposunda saklanır.
 Yapılan her değişikliğin tarihi ve içeriği burada kayıtlıdır; istenirse herhangi
 bir eski sürüme geri dönülebilir. Kodun güvenli yedeği burasıdır.
 
-- Depo: https://github.com/griakvaryu/website
+- Depo: https://github.com/cihanelibol/website
 - Ana dal: `main` — bu dala gönderilen her değişiklik siteyi otomatik günceller (aşağıya bakın).
 
 ## 2. Neon — Veritabanı
@@ -44,7 +44,7 @@ Ziyaretçilerin gördüğü site Vercel üzerinde çalışır. Vercel, GitHub'da
 bağlıdır: `main` dalına yeni kod gönderildiğinde Vercel bunu otomatik olarak
 derler ve dakikalar içinde yayına alır. Elle "yükleme" yapılmaz.
 
-- Panel: https://vercel.com (griakvaryum@gmail.com ile giriş)
+- Panel: https://vercel.com (cihanelibol hesabının mevcut projesi)
 - Alan adı: griakvaryum.com
 - Veritabanı bağlantısı Vercel'in ortam değişkenlerinde (`DATABASE_URL`) tanımlıdır.
 
