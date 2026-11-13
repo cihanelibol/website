@@ -898,6 +898,9 @@ textarea:focus-visible {
   position: relative;
   /* Reserve the same space for loaded, missing and failed images. */
   flex: none;
+  /* Keep WebKit from deriving a wider flex item from min-height and aspect-ratio. */
+  width: 100%;
+  min-width: 0;
   aspect-ratio: 16 / 9;
   min-height: 160px;
   background: var(--surface);
