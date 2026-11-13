@@ -27,6 +27,7 @@ import { getCatalogProducts } from "@/lib/catalog-data";
 import { breadcrumbs, pageMetadata, productSchema } from "@/lib/seo";
 import JsonLd from "@/components/JsonLd";
 import { productCategoryLinks } from "@/lib/guide-catalog";
+import { editorialDescription, getProductEditorial } from "@/lib/product-editorial";
 
 type Params = Promise<{ id: string }>;
 
@@ -39,7 +40,8 @@ export async function generateMetadata({ params }: { params: Params }) {
   const all = await getCatalogProducts();
   const product = all.find((p) => p.id === Number(id));
   if (!product) notFound();
-  return pageMetadata(`${product.name} | Gri Akvaryum`, `${product.name} - ${formatPrice(product.price_with_tax)} KDV dahil. Ürün bilgileri ve güncel stok. Gri Akvaryum Eminönü mağazasından seçim desteği.`, `/urunler/${product.id}`, product.images.find(i => i.is_primary)?.url ?? product.images[0]?.url);
+  const editorial = getProductEditorial(product);
+  return pageMetadata(`${product.name} | Gri Akvaryum`, editorial?.summary ?? `${product.name} - ${formatPrice(product.price_with_tax)} KDV dahil. Ürün bilgileri ve güncel stok. Gri Akvaryum Eminönü mağazasından seçim desteği.`, `/urunler/${product.id}`, product.images.find(i => i.is_primary)?.url ?? product.images[0]?.url);
 }
 
 function Stars({ value, size = "text-base" }: { value: number; size?: string }) {
@@ -67,6 +69,8 @@ export default async function ProductDetailPage({
   const product = all.find((p) => p.id === productId);
   if (!product) notFound();
 
+  const editorial = getProductEditorial(product);
+  const description = editorial ? editorialDescription(editorial) : product.description;
   const categoryLinks = productCategoryLinks(product);
   const inStock = product.stock_quantity > 0;
   const lowStock = inStock && product.stock_quantity <= 5;
@@ -104,7 +108,7 @@ export default async function ProductDetailPage({
     <>
       <Navbar />
       <JsonLd data={[
-        productSchema(product, { count: reviewCount, average }),
+        productSchema({ ...product, description }, { count: reviewCount, average }),
         breadcrumbs([{ name: "Ana Sayfa", path: "/" }, { name: "Ürünler", path: "/urunler" }, { name: product.name, path: `/urunler/${product.id}` }]),
       ]} />
       {/* Üye denetim kaydı: ürün görüntüleme olayı */}
@@ -207,13 +211,18 @@ export default async function ProductDetailPage({
               <p className="mt-3 text-xs leading-relaxed text-muted">Teslimat koşulları ve varsa kargo ücreti sipariş onayında bildirilir. Mağazadan teslim için bizimle iletişime geçebilirsiniz.</p>
             </div>
 
-            {!product.description?.trim() && <p className="store-product-data-note">Bu ürünün ölçü ve uyumluluk bilgileri katalogda yer almıyor. Sipariş vermeden önce ürün kodunu belirterek mağazamızdan bilgi alın.</p>}
-            {product.description && (
+            {!description?.trim() && <p className="store-product-data-note">Bu ürünün ölçü ve uyumluluk bilgileri katalogda yer almıyor. Sipariş vermeden önce ürün kodunu belirterek mağazamızdan bilgi alın.</p>}
+            {description && (
               <p className="mt-7 whitespace-pre-line text-sm leading-relaxed text-muted">
-                {product.description}
+                {description}
               </p>
             )}
 
+            {editorial && (
+              <p className="mt-3 text-xs leading-relaxed text-muted">
+                Kaynak: <a href={editorial.source.url} target="_blank" rel="noopener noreferrer" className="text-cyan-300 hover:underline">{editorial.source.title}</a>
+              </p>
+            )}
             {/* Özellikler */}
             <div className="mt-8">
               <h2 className="font-display mb-3 text-sm font-bold uppercase tracking-wider">
