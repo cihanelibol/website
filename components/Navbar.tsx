@@ -62,7 +62,7 @@ function accountSnapshot() {
 function serverAccountSnapshot() {
   return "";
 }
-export default function Navbar() {
+export default function Navbar({ seamless = false }: { seamless?: boolean }) {
   const { totalCount } = useCart();
   const [cartOpen, setCartOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -132,7 +132,7 @@ export default function Navbar() {
       <a className="store-skip" href="#main-content">
         İçeriğe geç
       </a>
-      <header ref={headerRef} className="store-header">
+      <header ref={headerRef} className="store-header" data-seamless={seamless || undefined}>
         <div className="store-container store-header-main">
           <Link
             href="/"

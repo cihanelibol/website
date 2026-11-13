@@ -1,8 +1,4 @@
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import GoogleButton from "@/components/GoogleButton";
-import { googleConfigured } from "@/lib/auth";
-import KayitForm from "./KayitForm";
+import AuthShell from "@/components/AuthShell";
 
 export const metadata = {
   robots: { index: false, follow: true },
@@ -11,22 +7,5 @@ export const metadata = {
 };
 
 export default function KayitPage() {
-  return (
-    <>
-      <Navbar />
-      <main id="main-content" className="store-container flex min-h-svh items-center justify-center pb-20 pt-24">
-        <div className="glass w-full max-w-md rounded-3xl p-8">
-          <h1 className="font-display mb-1 text-2xl font-bold tracking-tight">
-            Kayıt Ol
-          </h1>
-          <p className="mb-6 text-sm text-muted">
-            Ücretsiz hesap oluşturun. Üyelik olmadan da sipariş verebilirsiniz.
-          </p>
-          {googleConfigured() && <GoogleButton />}
-          <KayitForm />
-        </div>
-      </main>
-      <Footer />
-    </>
-  );
+  return <AuthShell initialScreen="register" />;
 }

@@ -1,9 +1,4 @@
-import AppIcon from "@/components/AppIcon";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import GoogleButton from "@/components/GoogleButton";
-import { googleConfigured } from "@/lib/auth";
-import GirisForm from "./GirisForm";
+import AuthShell from "@/components/AuthShell";
 
 export const metadata = {
   robots: { index: false, follow: true },
@@ -28,27 +23,5 @@ export default async function GirisPage({
   const { hata } = await searchParams;
   const hataMesaji = hata ? HATA_MESAJLARI[hata] : undefined;
 
-  return (
-    <>
-      <Navbar />
-      <main id="main-content" className="store-container flex min-h-svh items-center justify-center pb-20 pt-24">
-        <div className="glass w-full max-w-md rounded-3xl p-8">
-          <h1 className="font-display mb-1 text-2xl font-bold tracking-tight">
-            Giriş Yap
-          </h1>
-          <p className="mb-6 text-sm text-muted">
-            Tekrar hoş geldiniz! Hesabınıza giriş yapın.
-          </p>
-          {hataMesaji && (
-            <p className="mb-4 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-2.5 text-sm text-amber-300">
-              <AppIcon name="warning" /> {hataMesaji}
-            </p>
-          )}
-          {googleConfigured() && <GoogleButton />}
-          <GirisForm />
-        </div>
-      </main>
-      <Footer />
-    </>
-  );
+  return <AuthShell error={hataMesaji} />;
 }
