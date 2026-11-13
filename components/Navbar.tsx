@@ -77,7 +77,10 @@ export default function Navbar({ seamless = false }: { seamless?: boolean }) {
   const userName = /(?:^|;\s*)ga_user=([^;]+)/.test(accountCookie);
   const isAdmin = /(?:^|;\s*)ga_role=admin(?:;|$)/.test(accountCookie);
   const closeCart = useCallback(() => setCartOpen(false), []);
-  const openCart = useCallback(() => setCartOpen(true), []);
+  const openCart = useCallback(() => {
+    setMenuOpen(false);
+    setCartOpen(true);
+  }, []);
   useLayoutEffect(() => {
     const header = headerRef.current;
     if (!header) return;
@@ -95,10 +98,9 @@ export default function Navbar({ seamless = false }: { seamless?: boolean }) {
     };
   }, []);
   useEffect(() => {
-    const open = () => setCartOpen(true);
-    window.addEventListener("ga:open-cart", open);
-    return () => window.removeEventListener("ga:open-cart", open);
-  }, []);
+    window.addEventListener("ga:open-cart", openCart);
+    return () => window.removeEventListener("ga:open-cart", openCart);
+  }, [openCart]);
   useEffect(() => {
     if (!menuOpen) return;
     const desktop = window.matchMedia("(min-width: 1101px)");
@@ -142,9 +144,10 @@ export default function Navbar({ seamless = false }: { seamless?: boolean }) {
             <Image
               src="/logo-mark.png"
               alt=""
-              width={38}
-              height={38}
-              priority
+              width={814}
+              height={475}
+              sizes="(max-width: 640px) 44px, (max-width: 1100px) 48px, 56px"
+              preload
             />
             <span>
               Gri<b>Akvaryum</b>
@@ -163,6 +166,7 @@ export default function Navbar({ seamless = false }: { seamless?: boolean }) {
               className="store-account"
               href={userName ? "/hesap" : "/giris"}
               aria-label={userName ? "Hesabım" : "Giriş yap"}
+              title={userName ? "Hesabım" : "Giriş yap"}
             >
               <svg
                 width="26"
@@ -170,7 +174,7 @@ export default function Navbar({ seamless = false }: { seamless?: boolean }) {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="1.7"
+                strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 aria-hidden="true"
@@ -183,39 +187,59 @@ export default function Navbar({ seamless = false }: { seamless?: boolean }) {
             <button
               type="button"
               className="store-cart-button"
-              onClick={() => setCartOpen(true)}
+              onClick={() => {
+                if (cartOpen) closeCart();
+                else openCart();
+              }}
               aria-label={`Sepetim, ${totalCount} ürün`}
+              aria-expanded={cartOpen}
+              title={cartOpen ? "Sepeti kapat" : "Sepeti aç"}
+              onKeyDown={(event) => {
+                if (event.key === "Escape" && cartOpen) {
+                  event.preventDefault();
+                  closeCart();
+                }
+              }}
             >
-              <svg
-                width="26"
-                height="26"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="m8 3-3 6m11-6 3 6M3 9h18l-1.7 10a2 2 0 0 1-2 1.7H6.7a2 2 0 0 1-2-1.7L3 9Z" />
-                <path d="M10 13h4l-2 3-2-3Z" fill="currentColor" stroke="none" />
-              </svg>
-              <span className="store-cart-label">Sepetim</span>
-              <span aria-live="polite">
-                {totalCount > 99 ? "99+" : totalCount}
+              <span className="store-cart-icon" aria-hidden="true">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m8 3-3 6m11-6 3 6M3 9h18l-1.7 10a2 2 0 0 1-2 1.7H6.7a2 2 0 0 1-2-1.7L3 9Z" />
+                  <path d="M10 13h4l-2 3-2-3Z" fill="currentColor" stroke="none" />
+                </svg>
+                {totalCount > 0 && (
+                  <span className="store-cart-count">
+                    {totalCount > 99 ? "99+" : totalCount}
+                  </span>
+                )}
               </span>
+              <span className="store-cart-label">Sepetim</span>
             </button>
             <button
               ref={menuButtonRef}
               type="button"
               className="store-menu-button"
               aria-expanded={menuOpen}
-              aria-controls="store-mobile-menu"
-              aria-label="Menüyü aç veya kapat"
-              onClick={() => setMenuOpen(!menuOpen)}
+              aria-controls={menuOpen ? "store-mobile-menu" : undefined}
+              aria-label={menuOpen ? "Menüyü kapat" : "Menüyü aç"}
+              title={menuOpen ? "Menüyü kapat" : "Menüyü aç"}
+              onClick={() => {
+                setCartOpen(false);
+                setMenuOpen(!menuOpen);
+              }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d={menuOpen ? "M6 6l12 12M6 18 18 6" : "M4 6h16M4 12h16M4 18h16"} /></svg>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d={menuOpen ? "M6 6l12 12M6 18 18 6" : "M4 6h16M4 12h16M4 18h16"} /></svg>
             </button>
+            <span className="sr-only" role="status" aria-atomic="true">Sepetinizde {totalCount} ürün var.</span>
           </div>
         </div>
         <nav className="store-container store-nav" aria-label="Ana menü">

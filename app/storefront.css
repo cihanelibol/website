@@ -207,16 +207,18 @@ textarea:focus-visible {
 .store-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   flex: none;
+  min-height: 44px;
   font-weight: 800;
-  font-size: 20px;
+  font-size: 24px;
   letter-spacing: -0.02em;
   white-space: nowrap;
 }
 .store-logo img {
-  width: 38px;
-  height: 38px;
+  width: 56px;
+  height: auto;
+  flex: none;
   object-fit: contain;
 }
 .store-logo b {
@@ -296,62 +298,83 @@ textarea:focus-visible {
 .store-header-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  flex: none;
+  gap: 8px;
 }
 .store-account,
-.store-cart-button {
-  display: flex;
+.store-cart-button,
+.store-menu-button {
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+  flex: none;
   gap: 10px;
-  height: 46px;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--store-radius-small);
+  background: var(--surface);
   color: var(--foreground);
   font-size: 14px;
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
-  transition: color 150ms ease;
+  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
 }
-.store-account {
-  padding: 0 14px 0 10px;
+@media (hover: hover) {
+  .store-account:hover,
+  .store-cart-button:hover,
+  .store-menu-button:hover {
+    color: var(--accent);
+    background: var(--store-hover-tint);
+    border-color: var(--card-hover-border);
+  }
 }
-.store-account:hover,
-.store-cart-button:hover {
+.store-header-actions > :focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+.store-account:active,
+.store-cart-button:active,
+.store-menu-button:active,
+.store-cart-button[aria-expanded="true"],
+.store-menu-button[aria-expanded="true"] {
   color: var(--accent);
+  background: var(--store-primary-tint);
+  border-color: var(--accent);
 }
 .store-account > svg,
-.store-cart-button > svg {
-  width: 26px;
-  height: 26px;
+.store-cart-icon > svg,
+.store-menu-button > svg {
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
 }
-.store-cart-button {
+.store-cart-icon {
+  display: inline-flex;
   position: relative;
-  padding: 0 12px 0 20px;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
-.store-cart-button::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: 1px;
+  flex: none;
+  width: 24px;
   height: 24px;
-  background: var(--store-border-strong);
-  transform: translateY(-50%);
 }
-.store-cart-button > span[aria-live] {
+.store-cart-count {
+  position: absolute;
+  top: -10px;
+  right: -8px;
   display: grid;
   place-items: center;
   min-width: 20px;
   height: 20px;
-  padding-inline: 5px;
+  padding-inline: 4px;
+  border: 2px solid var(--surface);
   border-radius: 999px;
-  background: var(--store-orange);
+  background: var(--store-count-bg);
   color: var(--foreground);
   font-size: 12px;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
 }
 .store-nav {
   display: flex;
@@ -383,8 +406,8 @@ textarea:focus-visible {
 }
 .store-menu-button {
   display: none;
-  min-width: 40px;
-  height: 44px;
+  width: 48px;
+  padding: 0;
 }
 .store-mobile-menu {
   display: none;
@@ -1994,7 +2017,11 @@ main.store-catalog-page .store-catalog-sort {
     gap: 16px;
   }
   .store-logo {
-    font-size: 18px;
+    font-size: 20px;
+    gap: 10px;
+  }
+  .store-logo img {
+    width: 48px;
   }
   .store-intro {
     grid-template-columns: 190px minmax(0, 1fr);
@@ -2009,7 +2036,7 @@ main.store-catalog-page .store-catalog-sort {
     padding: 20px;
   }
   .store-menu-button {
-    display: block;
+    display: inline-flex;
   }
   .store-mobile-menu {
     display: flex;
@@ -2125,42 +2152,37 @@ main.store-catalog-page .store-catalog-sort {
     top: calc(190px + var(--store-contact-height) + env(safe-area-inset-top, 0px)) !important;
   }
 }
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .store-account > span, .store-cart-label { display: none; }
-  .store-account { min-width: 44px; justify-content: center; }
-  .store-topbar .store-container > div {
-    gap: 10px;
-  }
   .store-logo {
     font-size: 18px;
     gap: 6px;
   }
   .store-logo img {
-    width: 30px;
-    height: 30px;
-  }
-  .store-account {
-    padding-inline: 6px;
+    width: 44px;
   }
   .store-account,
   .store-cart-button {
-    padding-inline: 10px;
-    gap: 6px;
-    height: 44px;
-    font-size: 12px;
-  }
-  .store-account > svg,
-  .store-cart-button > svg {
-    width: 24px;
-    height: 24px;
-  }
-  .store-menu-button {
-    min-width: 30px;
-  }
-  .store-header-actions {
-    gap: 2px;
+    width: 48px;
+    padding: 0;
   }
   .store-header-main {
+    gap: 10px;
+  }
+}
+@media (max-width: 400px) {
+  .store-account,
+  .store-cart-button,
+  .store-menu-button {
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .store-header-actions { gap: 4px; }
+  .store-header-main { gap: 8px; }
+}
+@media (max-width: 480px) {
+  .store-topbar .store-container > div {
     gap: 10px;
   }
   .store-search input {
@@ -2511,11 +2533,11 @@ main p a, .store-account-help a { text-decoration: underline; text-underline-off
 .store-mobile-menu > a, .store-mobile-menu > form > button { display: flex; align-items: center; min-height: 44px; }
 .store-mobile-categories { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 16px; width: 100%; border-bottom: 1px solid var(--glass-border); padding-bottom: 12px; }
 .store-mobile-categories a { min-height: 44px; display: flex; align-items: center; }
-.store-menu-button { min-width: 44px; min-height: 44px; }
 @media (max-width: 360px) {
-  .store-logo { font-size: 16px; }
-  .store-logo img { display: none; }
-  .store-header-main { gap: 10px; }
+  .store-logo { font-size: 16px; line-height: 1.1; }
+  .store-logo b { display: block; }
+  .store-header-main { gap: 8px; }
+  .store-header-actions { gap: 2px; }
 }
 .store-account-help { border-top: 1px solid var(--glass-border); padding-top: 16px; font-size: 14px; }
 .store-account-help summary { cursor: pointer; min-height: 44px; font-weight: 600; }
