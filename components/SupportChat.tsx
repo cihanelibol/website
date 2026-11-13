@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import AppIcon from "@/components/AppIcon";
 import { containDialogFocus } from "@/components/dialog-focus";
@@ -128,8 +129,14 @@ export default function SupportChat() {
 
   return (
     <aside aria-label="Akvaryum asistanı">
-      <button ref={launcherRef} type="button" className={styles.launcher} onClick={() => { manualOpenRef.current = true; setOpen(true); }} aria-haspopup="dialog" aria-expanded={open} aria-controls="store-assistant">
-        <AppIcon name="message" size={21} /> Uzmana sor
+      <button ref={launcherRef} type="button" className={styles.launcher} onClick={() => { manualOpenRef.current = true; setOpen(true); }} aria-label="Uzmana sor" aria-haspopup="dialog" aria-expanded={open} aria-controls="store-assistant">
+        <span className={styles.launcherLabel} aria-hidden="true">Uzmana sor</span>
+        <span className={styles.fishFloat} aria-hidden="true">
+          <span className={styles.fishArt}>
+            <span className={styles.fishBody}><Image src="/aquarium/clownfish.webp" alt="" fill sizes="112px" unoptimized draggable={false} /></span>
+            <span className={styles.fishTail}><Image src="/aquarium/clownfish.webp" alt="" fill sizes="112px" unoptimized draggable={false} /></span>
+          </span>
+        </span>
       </button>
       <dialog ref={dialogRef} id="store-assistant" className={styles.panel} aria-labelledby="assistant-title" onCancel={(event) => { event.preventDefault(); close(); }} onClose={() => setOpen(false)} onKeyDown={containDialogFocus} onClick={(event) => { if (event.target === event.currentTarget) close(); }}>
         <div className={styles.inner}>

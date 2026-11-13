@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import AppIcon from "@/components/AppIcon";
 import SupportChat from "@/components/SupportChat";
 import StorefrontHero from "@/components/StorefrontHero";
+import StoreVisitDrawer from "@/components/StoreVisitDrawer";
 import CloudBrandMarquee from "@/components/CloudBrandMarquee";
 import OceanSplash from "@/components/OceanSplash";
 import ProductCard from "@/components/ProductCard";
@@ -66,10 +67,8 @@ export default async function Home() {
       <Navbar />
       <JsonLd data={storeSchema} />
       <main id="main-content" className="store-home">
-        <div className="store-container pt-6">
-          <h1 className="font-display text-xl font-semibold sm:text-2xl">Eminönü’nde akvaryum, balık ve ekipman mağazası</h1>
-          <Link href="/magaza/eminonu" className="mt-2 inline-block text-sm text-accent">Gri Akvaryum’u ziyaret edin →</Link>
-        </div>
+        <h1 className="sr-only">Eminönü’nde akvaryum, balık ve ekipman mağazası</h1>
+        <StoreVisitDrawer />
         <div className="store-container store-intro">
           <nav
             id="kategoriler"
@@ -81,7 +80,7 @@ export default async function Home() {
               <Link key={c.key} href={`/kategori/${c.key}`}>
                 <span>
                   <strong>{c.title}</strong>
-                  <small>{c.categories.length} alt kategori</small>
+                  <small title={c.categories.map(category => category.name).join(", ")}>{c.categories.map(category => category.name).join(", ")}</small>
                 </span>
                 <span aria-hidden="true">›</span>
               </Link>

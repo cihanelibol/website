@@ -3,21 +3,98 @@
   bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
   right: calc(24px + var(--store-cart-offset, 0px));
   z-index: 30;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  min-height: 48px;
-  padding: 12px 20px;
-  border: 1px solid #ffffff30;
-  border-radius: 999px;
-  background: var(--store-success);
-  color: white;
-  font-size: 14px;
-  font-weight: 650;
-  box-shadow: 0 4px 20px #061e3026;
+  width: 112px;
+  height: 80px;
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
-.launcher:hover { background: var(--store-success-deep); }
+.launcher:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.launcherLabel { position: absolute; right: calc(100% - 4px); bottom: 44%; padding: 9px 13px; white-space: nowrap; border: 1px solid #b7dbe7; border-radius: 24px; background: #f5fcff; color: var(--store-ocean-deep); font-size: 12px; font-weight: 600; box-shadow: 0 3px 12px #062c3412; }
+.launcherLabel::before, .launcherLabel::after { content: ""; position: absolute; border: 1px solid #b7dbe7; border-radius: 50%; background: #f5fcff; }
+.launcherLabel::before { width: 9px; height: 9px; right: -10px; bottom: -3px; }
+.launcherLabel::after { width: 5px; height: 5px; right: -18px; bottom: -8px; }
+.fishFloat { position: absolute; inset: 7px 0; pointer-events: auto; animation: fish-patrol 22s linear infinite; }
+.fishArt { position: absolute; inset: 0; transform: scaleX(-1); filter: drop-shadow(0 5px 5px #062c3426); animation: fish-facing 22s linear infinite; }
+.fishBody, .fishTail { position: absolute; inset: 0; }
+.fishArt img { object-fit: contain; user-select: none; }
+.fishBody { mask-image: linear-gradient(90deg, transparent 23%, #000 29%); }
+.fishTail { mask-image: linear-gradient(90deg, #000 25%, transparent 30%); transform-origin: 29% 50%; animation: fish-tail 1.2s ease-in-out infinite alternate; }
+.launcher:is(:hover, :focus-visible) :is(.fishFloat, .fishArt), .launcher[aria-expanded="true"] :is(.fishFloat, .fishArt, .fishTail) { animation-play-state: paused; }
+@keyframes fish-patrol {
+  0%, 30%, 60%, 70% { transform: translate(0, 2px) rotate(-2.00deg); }
+  15%, 45% { transform: translate(0, -5px) rotate(2.00deg); }
+  /* Arc-length samples: steady travel through bends, gentle departure and arrival. */
+  70.4688% { transform: translate(-0.01px, 1.53px) rotate(0.60deg); }
+  70.9375% { transform: translate(-0.11px, 0.14px) rotate(3.21deg); }
+  71.4062% { transform: translate(-0.54px, -2.16px) rotate(5.81deg); }
+  71.8750% { transform: translate(-1.56px, -5.26px) rotate(6.00deg); }
+  72.3438% { transform: translate(-3.41px, -9.04px) rotate(6.00deg); }
+  72.8125% { transform: translate(-6.23px, -13.33px) rotate(6.00deg); }
+  73.2812% { transform: translate(-9.98px, -17.89px) rotate(6.00deg); }
+  73.7500% { transform: translate(-14.17px, -22.16px) rotate(6.00deg); }
+  74.2188% { transform: translate(-18.64px, -26.13px) rotate(6.00deg); }
+  74.6875% { transform: translate(-23.33px, -29.85px) rotate(6.00deg); }
+  75.1562% { transform: translate(-28.19px, -33.33px) rotate(6.00deg); }
+  75.6250% { transform: translate(-33.20px, -36.60px) rotate(6.00deg); }
+  76.0938% { transform: translate(-38.33px, -39.68px) rotate(6.00deg); }
+  76.5625% { transform: translate(-43.56px, -42.57px) rotate(6.00deg); }
+  77.0312% { transform: translate(-48.89px, -45.27px) rotate(6.00deg); }
+  77.5000% { transform: translate(-54.31px, -47.81px) rotate(6.00deg); }
+  77.9688% { transform: translate(-59.81px, -50.17px) rotate(6.00deg); }
+  78.4375% { transform: translate(-65.38px, -52.35px) rotate(6.00deg); }
+  78.9062% { transform: translate(-71.02px, -54.34px) rotate(6.00deg); }
+  79.3750% { transform: translate(-76.72px, -56.15px) rotate(6.00deg); }
+  79.8438% { transform: translate(-82.48px, -57.77px) rotate(6.00deg); }
+  80.3125% { transform: translate(-88.29px, -59.16px) rotate(6.00deg); }
+  80.7812% { transform: translate(-94.16px, -60.32px) rotate(6.00deg); }
+  81.2500% { transform: translate(-100.07px, -61.21px) rotate(6.00deg); }
+  81.7188% { transform: translate(-106.03px, -61.79px) rotate(3.92deg); }
+  82.1875% { transform: translate(-112.00px, -62.00px) rotate(-0.00deg); }
+  82.6562% { transform: translate(-117.98px, -61.75px) rotate(-5.00deg); }
+  83.1250% { transform: translate(-123.89px, -60.90px) rotate(-6.00deg); }
+  83.5938% { transform: translate(-129.62px, -59.21px) rotate(-6.00deg); }
+  84.0625% { transform: translate(-134.83px, -56.30px) rotate(-6.00deg); }
+  84.5312% { transform: translate(-138.66px, -51.77px) rotate(-6.00deg); }
+  85.0000% { transform: translate(-140.00px, -46.00px) rotate(6.00deg); }
+  85.4688% { transform: translate(-138.96px, -40.14px) rotate(6.00deg); }
+  85.9375% { transform: translate(-136.45px, -34.72px) rotate(6.00deg); }
+  86.4062% { transform: translate(-133.09px, -29.77px) rotate(6.00deg); }
+  86.8750% { transform: translate(-129.21px, -25.23px) rotate(6.00deg); }
+  87.3438% { transform: translate(-124.96px, -21.02px) rotate(6.00deg); }
+  87.8125% { transform: translate(-120.44px, -17.10px) rotate(6.00deg); }
+  88.2812% { transform: translate(-115.71px, -13.44px) rotate(6.00deg); }
+  88.7500% { transform: translate(-110.82px, -10.00px) rotate(6.00deg); }
+  89.2188% { transform: translate(-105.79px, -6.77px) rotate(6.00deg); }
+  89.6875% { transform: translate(-100.63px, -3.73px) rotate(6.00deg); }
+  90.1562% { transform: translate(-95.38px, -0.88px) rotate(6.00deg); }
+  90.6250% { transform: translate(-90.03px, 1.80px) rotate(6.00deg); }
+  91.0938% { transform: translate(-84.59px, 4.29px) rotate(6.00deg); }
+  91.5625% { transform: translate(-79.08px, 6.62px) rotate(6.00deg); }
+  92.0312% { transform: translate(-73.50px, 8.76px) rotate(6.00deg); }
+  92.5000% { transform: translate(-67.85px, 10.72px) rotate(6.00deg); }
+  92.9688% { transform: translate(-62.14px, 12.49px) rotate(6.00deg); }
+  93.4375% { transform: translate(-56.36px, 14.06px) rotate(6.00deg); }
+  93.9062% { transform: translate(-50.54px, 15.41px) rotate(6.00deg); }
+  94.3750% { transform: translate(-44.66px, 16.52px) rotate(6.00deg); }
+  94.8438% { transform: translate(-38.74px, 17.35px) rotate(6.00deg); }
+  95.3125% { transform: translate(-32.78px, 17.86px) rotate(3.20deg); }
+  95.7812% { transform: translate(-26.80px, 17.99px) rotate(-0.90deg); }
+  96.2500% { transform: translate(-20.83px, 17.63px) rotate(-6.00deg); }
+  96.7188% { transform: translate(-14.94px, 16.64px) rotate(-6.00deg); }
+  97.1875% { transform: translate(-9.35px, 14.77px) rotate(-6.00deg); }
+  97.6562% { transform: translate(-4.95px, 12.13px) rotate(-6.00deg); }
+  98.1250% { transform: translate(-2.10px, 9.06px) rotate(-6.00deg); }
+  98.5938% { transform: translate(-0.65px, 6.14px) rotate(-6.00deg); }
+  99.0625% { transform: translate(-0.12px, 3.86px) rotate(-6.00deg); }
+  99.5312% { transform: translate(-0.01px, 2.47px) rotate(-4.08deg); }
+  100.0000% { transform: translate(0.00px, 2.00px) rotate(-2.00deg); }
+}
+@keyframes fish-facing { 0%, 84%, 98%, 100% { transform: scaleX(-1); } 86%, 96% { transform: scaleX(1); } }
+@keyframes fish-tail { from { transform: perspective(180px) rotateY(-16deg) skewY(-2deg); } to { transform: perspective(180px) rotateY(16deg) skewY(2deg); } }
 .panel {
   position: fixed;
   inset: auto calc(24px + var(--store-cart-offset, 0px)) 24px auto;
@@ -35,6 +112,10 @@
   box-shadow: 0 16px 70px #061e3038;
 }
 .panel::backdrop { background: #061e3026; }
+.panel[open] { transform-origin: calc(100% - 48px) calc(100% - 36px); animation: assistant-open .32s cubic-bezier(.16, 1, .3, 1) both; }
+.panel[open]::backdrop { animation: assistant-backdrop .25s ease-out both; }
+@keyframes assistant-open { from { opacity: 0; transform: translateY(12px) scale(.18); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes assistant-backdrop { from { opacity: 0; } to { opacity: 1; } }
 .inner { display: flex; flex-direction: column; height: 100%; min-height: 0; }
 .header { display: flex; align-items: center; gap: 12px; padding: 20px 16px; background: var(--store-ocean-deep); color: var(--store-ocean-text); }
 .avatar { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; background: #74c5d926; color: var(--store-ocean-light); }
@@ -76,7 +157,7 @@
 .note { margin: 9px 16px 13px; text-align: center; font-size: 10px; line-height: 1.5; color: var(--muted); }
 @keyframes pulse { 50% { opacity: .35; } }
 @media (max-width: 480px) {
-  .launcher { right: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); padding: 10px 16px; font-size: 13px; }
+  .launcher { right: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); width: 96px; height: 68px; }
   .panel { inset: auto 12px calc(env(safe-area-inset-bottom, 0px) + 12px) 12px; width: auto; height: min(680px, calc(100dvh - env(safe-area-inset-bottom, 0px) - 24px)); border-radius: 14px; }
   .header { padding: 14px 12px; gap: 8px; }
   .header p { font-size: 10px; }
@@ -84,4 +165,4 @@
   .composer textarea { font-size: 16px; }
   .messages { padding: 16px 12px; }
 }
-@media (prefers-reduced-motion: reduce) { .dots { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .dots, .fishFloat, .fishArt, .fishTail, .panel[open], .panel[open]::backdrop { animation: none; } }
