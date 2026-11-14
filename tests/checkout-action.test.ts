@@ -21,6 +21,19 @@ describe("checkout orchestration", () => {
     const request = input(); const first = await submitOrderAction(request); const retry = await submitOrderAction(request);
     expect(first.ok).toBe(true); expect(retry.orderId).toBe(first.orderId); expect(external.post).toHaveBeenCalledTimes(1);
     expect(external.post.mock.calls[0][0].total_amount).toBe(24.68); expect(external.post.mock.calls[0][0].items[0].unit_price).toBe(12.34);
+    expect(external.post.mock.calls[0][0].notes).toContain("Kargo: 200.00 TL; kargo dahil toplam: 224.68 TL");
+    expect((await readJson<{ total: number; shippingFee: number }[]>("orders.json", []))[0]).toMatchObject({ total: 224.68, shippingFee: 200 });
+  });
+  it("uses free shipping above the threshold and still verifies the provider receipt", async () => {
+    external.catalogue.mockResolvedValue([{ id: 1, name: "Canonical", price_with_tax: 1300, stock_quantity: 20, currency: { value: "TRY" }, has_variations: false }]);
+    external.post.mockResolvedValue({ reference: "ET-free-shipping", total: 2600, currency: "TRY" });
+    expect((await submitOrderAction(input())).ok).toBe(true);
+    expect((await readJson<{ total: number; shippingFee: number }[]>("orders.json", []))[0]).toMatchObject({ total: 2600, shippingFee: 0 });
+  });
+  it("rejects a provider receipt that includes an unexpected shipping charge", async () => {
+    external.post.mockResolvedValue({ reference: "ET-mismatch", total: 224.68, currency: "TRY" });
+    expect((await submitOrderAction(input())).error).toContain("kontrol bekliyor");
+    expect((await readJson<{ submission: string }[]>("orders.json", []))[0].submission).toBe("unknown");
   });
   it("never resends an ambiguous timeout", async () => {
     external.post.mockRejectedValue(new Error("Timed out")); const request = input();

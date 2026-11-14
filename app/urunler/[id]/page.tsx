@@ -24,10 +24,12 @@ import { CONTACT } from "@/lib/site";
 import { getArticle } from "@/lib/rehber";
 import { getReviews, ratingSummary } from "@/lib/reviews";
 import { getCatalogProducts } from "@/lib/catalog-data";
-import { breadcrumbs, pageMetadata, productSchema } from "@/lib/seo";
+import { breadcrumbs, pageMetadata, productSchema, storeSchema } from "@/lib/seo";
 import JsonLd from "@/components/JsonLd";
 import { productCategoryLinks } from "@/lib/guide-catalog";
 import { editorialDescription, getProductEditorial } from "@/lib/product-editorial";
+import { productDescription } from "@/lib/product-seo";
+import { SHIPPING } from "@/lib/shipping";
 
 type Params = Promise<{ id: string }>;
 
@@ -41,7 +43,7 @@ export async function generateMetadata({ params }: { params: Params }) {
   const product = all.find((p) => p.id === Number(id));
   if (!product) notFound();
   const editorial = getProductEditorial(product);
-  return pageMetadata(`${product.name} | Gri Akvaryum`, editorial?.summary ?? `${product.name} - ${formatPrice(product.price_with_tax)} KDV dahil. Ürün bilgileri ve güncel stok. Gri Akvaryum Eminönü mağazasından seçim desteği.`, `/urunler/${product.id}`, product.images.find(i => i.is_primary)?.url ?? product.images[0]?.url);
+  return pageMetadata(`${product.name} | Gri Akvaryum`, editorial?.summary ?? productDescription(product), `/urunler/${product.id}`, product.images.find(i => i.is_primary)?.url ?? product.images[0]?.url);
 }
 
 function Stars({ value, size = "text-base" }: { value: number; size?: string }) {
@@ -70,7 +72,7 @@ export default async function ProductDetailPage({
   if (!product) notFound();
 
   const editorial = getProductEditorial(product);
-  const description = editorial ? editorialDescription(editorial) : product.description;
+  const description = editorial ? editorialDescription(editorial) : productDescription(product);
   const categoryLinks = productCategoryLinks(product);
   const inStock = product.stock_quantity > 0;
   const lowStock = inStock && product.stock_quantity <= 5;
@@ -108,9 +110,10 @@ export default async function ProductDetailPage({
     <>
       <Navbar />
       <JsonLd data={[
-        productSchema({ ...product, description }, { count: reviewCount, average }),
+        storeSchema,
+        productSchema({ ...product, description }, { count: reviewCount, average }, reviews),
         breadcrumbs([{ name: "Ana Sayfa", path: "/" }, { name: "Ürünler", path: "/urunler" }, { name: product.name, path: `/urunler/${product.id}` }]),
-      ]} />
+      ].filter(Boolean)} />
       {/* Üye denetim kaydı: ürün görüntüleme olayı */}
       <ActivityPing productId={product.id} productName={product.name} price={product.price_with_tax} />
       <main id="main-content" className="store-container store-product-detail min-h-svh pb-20 pt-24">
@@ -208,7 +211,7 @@ export default async function ProductDetailPage({
               <AddToCartDetail product={product} />
               <a className="store-product-help" href={`${CONTACT.whatsappHref}?text=${encodeURIComponent(`${product.name} (${product.sku ?? product.id}) hakkında bilgi almak istiyorum.`)}`} target="_blank" rel="noopener noreferrer">Bu ürünü uzmana sor (WhatsApp)</a>
               <IyzicoCheckoutNote className="mt-4" />
-              <p className="mt-3 text-xs leading-relaxed text-muted">Teslimat koşulları ve varsa kargo ücreti sipariş onayında bildirilir. Mağazadan teslim için bizimle iletişime geçebilirsiniz.</p>
+              <p className="mt-3 text-xs leading-relaxed text-muted">{SHIPPING.summary} {SHIPPING.dispatch} <Link href={SHIPPING.policyPath} className="underline">Kargo ve teslimat koşulları</Link>{" · "}<Link href="/sozlesme/mesafeli-satis" className="underline">İade koşulları</Link></p>
             </div>
 
             {!description?.trim() && <p className="store-product-data-note">Bu ürünün ölçü ve uyumluluk bilgileri katalogda yer almıyor. Sipariş vermeden önce ürün kodunu belirterek mağazamızdan bilgi alın.</p>}

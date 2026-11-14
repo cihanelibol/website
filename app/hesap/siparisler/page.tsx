@@ -105,6 +105,8 @@ export default async function SiparislerPage() {
                 ))}
               </ul>
 
+              {order.shippingFee !== undefined && <p className="mt-2 text-xs text-muted">Kargo: {order.shippingFee === 0 ? "Ücretsiz" : formatPrice(order.shippingFee)} (toplama dahil)</p>}
+
               <div className="mt-3 flex items-center justify-between border-t border-cyan-400/10 pt-3">
                 <span className="text-xs text-muted">{order.addressText}</span>
                 <span className="font-display font-bold text-accent">

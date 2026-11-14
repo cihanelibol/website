@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { getLegalDoc, legalDocs } from "@/lib/legal";
+import { pageMetadata, storeSchema } from "@/lib/seo";
+import JsonLd from "@/components/JsonLd";
 
 type Params = Promise<{ slug: string }>;
 
@@ -13,11 +15,8 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Params }) {
   const { slug } = await params;
   const doc = getLegalDoc(slug);
-  if (!doc) return { title: "Sözleşme | Gri Akvaryum" };
-  return {
-    title: `${doc.title} | Gri Akvaryum`,
-    description: doc.intro.slice(0, 155),
-  };
+  if (!doc) notFound();
+  return pageMetadata(`${doc.title} | Gri Akvaryum`, doc.intro.slice(0, 155), `/sozlesme/${doc.slug}`);
 }
 
 export default async function LegalPage({ params }: { params: Params }) {
@@ -28,6 +27,7 @@ export default async function LegalPage({ params }: { params: Params }) {
   return (
     <>
       <Navbar />
+      {slug === "mesafeli-satis" && <JsonLd data={storeSchema} />}
       <main id="main-content" className="store-container min-h-svh pb-20 pt-24">
         <nav className="mb-6 text-xs text-muted">
           <Link href="/" className="hover:text-cyan-300">

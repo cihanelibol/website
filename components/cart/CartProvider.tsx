@@ -112,7 +112,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<CartContextValue>(() => {
     const totalCount = items.reduce((s, i) => s + i.qty, 0);
-    const totalAmount = items.reduce((s, i) => s + i.price * i.qty, 0);
+    const totalAmount = items.reduce((s, i) => s + Math.round(i.price * 100) * i.qty, 0) / 100;
     return { items, add, remove, setQty, clear, totalCount, totalAmount };
   }, [items, add, remove, setQty, clear]);
 

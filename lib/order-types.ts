@@ -36,6 +36,8 @@ export type OrderRecord = {
   addressText: string;
   items: { id: number; name: string; qty: number; price: number }[];
   total: number;
+  /** Included in total. Absent on orders created before shipping was priced here. */
+  shippingFee?: number;
   /** Ödeme yöntemi: iyzico entegrasyonu bağlanana dek "iyzico-bekliyor" */
   paymentMethod: "iyzico" | "iyzico-bekliyor";
   paymentStatus: "odendi" | "beklemede";

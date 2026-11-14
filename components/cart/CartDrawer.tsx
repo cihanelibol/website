@@ -1,4 +1,5 @@
 "use client";
+import { SHIPPING } from "@/lib/shipping";
 import Image from "next/image";
 import ProductImagePlaceholder from "@/components/ProductImagePlaceholder";
 import { containDialogFocus } from "@/components/dialog-focus";
@@ -147,8 +148,7 @@ function MobileCartDrawer({
                 <strong aria-live="polite">{formatPrice(totalAmount)}</strong>
               </div>
               <p>
-                KDV dahildir. Varsa kargo ücreti ve teslimat koşulları sipariş
-                onayında bildirilir.
+                KDV dahildir. {SHIPPING.summary}
               </p>
               <Link href="/sepet" onClick={onClose} className="store-button">
                 Sepeti Gör ve Devam Et

@@ -31,7 +31,8 @@ export async function markOrderSubmission(id: string, submission: "sent" | "unkn
   await updateJson<StoredOrder[], void>(FILE, [], all => {
     const order = all.find(o => o.id === id);
     if (order && order.submission === "pending") {
-      if (submission === "sent" && (!receipt?.reference || receipt.currency !== "TRY" || Math.round(receipt.total * 100) !== Math.round(order.total * 100))) throw new Error("Verified external receipt required");
+      const providerTotalCents = Math.round(order.total * 100) - Math.round((order.shippingFee ?? 0) * 100);
+      if (submission === "sent" && (!receipt?.reference || receipt.currency !== "TRY" || Math.round(receipt.total * 100) !== providerTotalCents)) throw new Error("Verified external receipt required");
       order.submission = submission;
       if (receipt) order.providerReference = receipt.reference;
       if (submission === "sent") queueConfirmation(order);

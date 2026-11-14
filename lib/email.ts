@@ -111,6 +111,7 @@ function orderTable(order: OrderRecord): string {
     .join("");
   return `<table style="width:100%;border-collapse:collapse;margin:12px 0;border-top:1px solid rgba(34,211,238,0.15);border-bottom:1px solid rgba(34,211,238,0.15);">
     ${rows}
+    ${order.shippingFee !== undefined ? `<tr><td style="padding:6px 0;color:#b8cbd9;">Kargo</td><td style="text-align:right;color:#b8cbd9;">${order.shippingFee === 0 ? "Ücretsiz" : formatPrice(order.shippingFee)}</td></tr>` : ""}
     <tr>
       <td style="padding:10px 0;color:#ffffff;font-weight:700;font-size:14px;">Toplam</td>
       <td style="padding:10px 0;color:#22d3ee;font-weight:700;font-size:14px;text-align:right;">${formatPrice(order.total)}</td>

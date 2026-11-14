@@ -8,12 +8,19 @@ export function proxy(request: NextRequest) {
       const values = request.nextUrl.searchParams.getAll(key);
       raw[key] = values.length === 1 ? values[0] : values;
     }
+    // Historical Search Console URL: this used a category slug before numeric IDs.
+    const legacyFishCategory = raw.kategori === "baliklar" && !raw.grup;
+    if (legacyFishCategory) {
+      delete raw.kategori;
+      raw.grup = "baliklar-canlilar";
+    }
     const filters = parseCatalogParams(raw);
     if (filters) {
       const path = catalogUrl(filters).split("?")[0];
       if (path !== "/urunler") {
         const destination = request.nextUrl.clone();
         destination.pathname = path;
+        if (legacyFishCategory) destination.searchParams.delete("kategori");
         destination.searchParams.delete(path.startsWith("/kategori/") ? "grup" : "marka");
         return NextResponse.redirect(destination, 308);
       }

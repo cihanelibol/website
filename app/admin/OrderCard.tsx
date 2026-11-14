@@ -93,6 +93,7 @@ export default function OrderCard({ order }: { order: OrderRecord }) {
           <div className="font-display text-lg font-bold text-accent">
             {formatTL(order.total)}
           </div>
+          {order.shippingFee !== undefined && <div className="text-xs text-muted">Kargo: {order.shippingFee === 0 ? "Ücretsiz" : formatTL(order.shippingFee)} (toplama dahil)</div>}
           <button
             onClick={() => setOpen((v) => !v)}
             className="text-xs font-medium text-cyan-300 hover:text-cyan-200"

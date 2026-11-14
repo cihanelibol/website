@@ -29,10 +29,10 @@ it("preserves merchant content and never mutates stock or cart data", () => {
 it("uses the same description in visible text and product schema without inventing offers", () => {
   const description = editorialDescription(saved);
   const schema = productSchema({ ...product, description }, { count: 0, average: 0 });
-  expect(schema.description).toBe(description);
-  expect(schema.offers?.price).toBe("100.00");
+  expect(schema?.description).toBe(description);
+  expect(schema?.offers?.price).toBe("100.00");
   expect(schema).not.toHaveProperty("gtin13");
-  expect(productSchema({ ...product, description, has_variations: true }, { count: 0, average: 0 })).not.toHaveProperty("offers");
+  expect(productSchema({ ...product, description, has_variations: true }, { count: 0, average: 0 })).toBeNull();
 });
 
 it("has traceable, identity-bound content for all 158 selected stock items", () => {

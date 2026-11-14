@@ -4,6 +4,7 @@ import { SITE_URL as BASE_URL } from "@/lib/site";
 import { getAllProducts, getCategories } from "@/lib/easytrade";
 import { BRANDS, buildCategoryGroups, productMatchesBrand } from "@/lib/catalog";
 import { CATEGORY_CONTENT } from "@/lib/catalog-seo";
+import { SHIPPING } from "@/lib/shipping";
 
 // Keep the sitemap fresh without generating it against an unavailable API at build time.
 // Errors propagate as 5xx instead of publishing an empty product sitemap.
@@ -13,6 +14,7 @@ export const maxDuration = 60;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [products, categories] = await Promise.all([getAllProducts(), getCategories()]);
   const staticPages: MetadataRoute.Sitemap = [
+    { url: `${BASE_URL}${SHIPPING.policyPath}`, lastModified: new Date("2026-11-14"), changeFrequency: "monthly" },
     {
       url: BASE_URL,
       changeFrequency: "weekly",

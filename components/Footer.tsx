@@ -18,7 +18,7 @@ const help = [
   ["/magaza/eminonu", "Eminönü mağazamız"],
   ["/rehber", "Akvaryum rehberi"],
   ["/hesap/siparisler", "Siparişlerim"],
-  ["/sozlesme/on-bilgilendirme", "Kargo ve teslimat"],
+  ["/sozlesme/kargo-teslimat", "Kargo ve teslimat"],
   ["/sozlesme/mesafeli-satis", "Mesafeli satış sözleşmesi"],
   ["/sozlesme/uyelik-sozlesmesi", "Üyelik sözleşmesi"],
   ["/iletisim", "Bize ulaşın"],

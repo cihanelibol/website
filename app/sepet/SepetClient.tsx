@@ -12,6 +12,7 @@ import { useCart } from "@/components/cart/CartProvider";
 import type { Address } from "@/lib/addresses";
 import { submitOrderAction } from "./actions";
 import { IyzicoCheckoutNote } from "@/components/PaymentLogos";
+import { SHIPPING, shippingFee, totalWithShipping } from "@/lib/shipping";
 
 function formatTL(value: number): string {
   return new Intl.NumberFormat("tr-TR", {
@@ -43,6 +44,8 @@ export default function SepetClient({
   paymentReady?: boolean;
 }) {
   const { items, setQty, remove, clear, totalCount, totalAmount } = useCart();
+  const cargoFee = shippingFee(totalAmount);
+  const grandTotal = totalWithShipping(totalAmount);
   const [step, setStep] = useState<Step>("sepet");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -365,12 +368,12 @@ export default function SepetClient({
               </div>
               <div className="flex justify-between text-muted">
                 <span>Kargo</span>
-                <span>Sipariş sonrası bilgilendirilir</span>
+                <span>{cargoFee === 0 ? "Ücretsiz" : formatTL(cargoFee)}</span>
               </div>
             </div>
             <div className="flex justify-between py-4 font-display text-lg font-bold">
               <span>Toplam</span>
-              <span className="text-accent">{formatTL(totalAmount)}</span>
+              <span className="text-accent">{formatTL(grandTotal)}</span>
             </div>
             <button
               onClick={goToTeslimat}
@@ -655,8 +658,12 @@ export default function SepetClient({
                 </span>
               </div>
               <div className="flex justify-between border-t border-cyan-400/10 pt-2 font-display font-bold">
+                <span>Kargo</span>
+                <span>{cargoFee === 0 ? "Ücretsiz" : formatTL(cargoFee)}</span>
+              </div>
+              <div className="flex justify-between border-t border-cyan-400/10 pt-2 font-display font-bold">
                 <span>Toplam</span>
-                <span className="text-accent">{formatTL(totalAmount)}</span>
+                <span className="text-accent">{formatTL(grandTotal)}</span>
               </div>
             </div>
 
@@ -665,10 +672,10 @@ export default function SepetClient({
               <p className="mt-2 text-sm text-muted">
                 {paymentReady
                   ? "Ödeme için iyzico sayfasına yönlendirileceksiniz. Kart bilgilerinizi bu sitede girmeyin."
-                  : "Bu adımda ödeme alınmaz. Sipariş talebiniz mağazamıza iletilir; ürünler, teslimat koşulları ve varsa kargo ücreti sizinle görüşülerek netleştirilir."}
+                  : "Bu adımda ödeme alınmaz. Sipariş talebiniz mağazamıza iletilir; ödeme yöntemi ve teslimat ayrıntıları sizinle görüşülür."}
               </p>
               {paymentReady && <IyzicoCheckoutNote className="mt-3" />}
-              {!paymentReady && <p className="mt-2 text-sm text-muted">Gösterilen tutar ürünler toplamıdır. Ödeme yöntemi ve teslimat dahil toplam tutar onayınızdan önce paylaşılır.</p>}
+              <p className="mt-2 text-sm text-muted">{SHIPPING.summary} {SHIPPING.dispatch} Gösterilen toplam kargo dahil tutardır.</p>
             </section>
 
             {/* Zorunlu sözleşme onayı */}
@@ -710,7 +717,7 @@ export default function SepetClient({
               {pending
                 ? "İşleniyor..."
                 : paymentReady
-                  ? <><AppIcon name="lock" /> {formatTL(totalAmount)} Öde</>
+                  ? <><AppIcon name="lock" /> {formatTL(grandTotal)} Öde</>
                   : "Sipariş talebini gönder"}
             </button>
           </div>

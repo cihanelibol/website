@@ -1,3 +1,5 @@
+import { SHIPPING } from "./shipping";
+
 // Yasal metinler: KVKK aydınlatma, üyelik sözleşmesi, ticari ileti onayı,
 // ön bilgilendirme formu ve mesafeli satış sözleşmesi.
 // Şirket bilgileri netleşince [•] işaretli alanlar doldurulmalıdır.
@@ -19,6 +21,20 @@ const COMPANY = "GRİ AKVARYUM & BALIK GALERİSİ";
 const SITE = "griakvaryum.com";
 
 export const legalDocs: LegalDoc[] = [
+  {
+    slug: "kargo-teslimat",
+    title: "Kargo ve Teslimat Koşulları",
+    updated: "2026-11-14",
+    intro: SHIPPING.summary,
+    blocks: [
+      { type: "h2", title: "Kargo ücreti" },
+      { type: "p", text: `${SHIPPING.summary} Eşik, KDV dahil ürünler toplamına göre hesaplanır; tam 2.500 TL tutarındaki siparişlerde kargo 200 TL'dir. Türkiye içi teslimatlar için geçerlidir.` },
+      { type: "h2", title: "Kargoya teslim" },
+      { type: "p", text: `${SHIPPING.dispatch} Saatler Türkiye saatidir. Kargoya verilme zamanı, alıcıya teslim zamanı değildir; taşıma süresi teslimat adresine ve kargo firmasına göre değişir.` },
+      { type: "h2", title: "Mağazadan teslim ve canlılar" },
+      { type: "p", text: "Mağazadan teslim için bizimle iletişime geçebilirsiniz. Canlı hayvanların taşıma koşulları ve teslim zamanı mağazayla ayrıca kararlaştırılır." },
+    ],
+  },
   {
     slug: "analitik-cerezler",
     title: "Analitik Çerez Tercihleri",
@@ -240,7 +256,7 @@ export const legalDocs: LegalDoc[] = [
       {
         type: "ul",
         items: [
-          "Ödeme, siparişin alınmasının ardından Satıcı'nın sizinle iletişime geçmesi üzerine mutabık kalınan yöntemle (havale/EFT, kapıda ödeme veya mağazada ödeme) yapılır. Varsa kargo/teslimat ücreti sipariş onayı sırasında ayrıca bildirilir.",
+          "Ödeme, siparişin alınmasının ardından Satıcı'nın sizinle iletişime geçmesi üzerine mutabık kalınan yöntemle (havale/EFT, kapıda ödeme veya mağazada ödeme) yapılır. " + SHIPPING.summary,
           "Ürünler, sipariş onayını takiben en geç 30 (otuz) gün içinde, bildirdiğiniz teslimat adresine gönderilir veya mutabık kalınması hâlinde mağazadan teslim edilir.",
           "Canlı hayvan (balık ve diğer canlılar) teslimatları, canlı sağlığının korunması amacıyla Satıcı tarafından belirlenen özel taşıma koşullarına tabidir; stok ve mevsim koşullarına göre teslimat süresi değişebilir.",
         ],
@@ -299,7 +315,7 @@ export const legalDocs: LegalDoc[] = [
         items: [
           "Ürünlerin cinsi, adedi ve tüm vergiler dâhil satış bedeli, sipariş özeti ekranında ve sipariş kaydında belirtildiği gibidir.",
           "Ödeme; siparişin alınmasını takiben Satıcı'nın Alıcı ile kurduğu iletişimde mutabık kalınan yöntemle (havale/EFT, kapıda ödeme veya mağazada ödeme) gerçekleştirilir.",
-          "Varsa teslimat/kargo ücreti Alıcı'ya aittir ve sipariş onayı sırasında ayrıca bildirilir.",
+          SHIPPING.summary,
         ],
       },
       { type: "h2", title: "4. Teslimat" },
