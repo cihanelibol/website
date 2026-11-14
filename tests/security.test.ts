@@ -103,6 +103,15 @@ describe("identity and sessions", () => {
     await user("victim@example.test");
     await expect(findOrCreateGoogleUser({ email: "victim@example.test", sub: "123456789", name: "Victim", verified: true })).rejects.toThrow();
   });
+  it("lets the verified Google mailbox owner claim an unverified account and drops prior credentials", async () => {
+    const created = await createUser({ name: "Squatter", email: "owner@example.test", password });
+    if ("error" in created) throw new Error(created.error);
+    const { user: claimed, created: isNew } = await findOrCreateGoogleUser({ email: "owner@example.test", sub: "555", name: "Owner", verified: true });
+    expect(isNew).toBe(false); expect(claimed.id).toBe(created.id);
+    expect(await verifyLogin("owner@example.test", password)).toBeFalsy();
+    const stored = await getUserById(created.id);
+    expect(stored?.googleSub).toBe("555"); expect(stored?.emailVerifiedAt).toBeTruthy(); expect(stored?.passwordHash).toBe(""); expect(stored?.tokens ?? []).toHaveLength(0);
+  });
   it("requires verified provider claims and binds identity to subject", async () => {
     await expect(findOrCreateGoogleUser({ email: "victim@example.test", sub: "123", name: "Victim", verified: false })).rejects.toThrow();
     const first = await findOrCreateGoogleUser({ email: "one@example.test", sub: "123", name: "One", verified: true });

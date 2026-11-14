@@ -75,6 +75,13 @@ export async function findOrCreateGoogleUser(input: { email: string; name: strin
       return { value: users, result: { user: identity, created: false } };
     }
     const existing = users.find(u => u.email === email);
+    if (existing && !existing.emailVerifiedAt && !existing.googleSub && !existing.disabled) {
+      // Unverified legacy/pre-registered account: Google has just proven ownership of this email,
+      // so the mailbox owner claims it. Drop every credential the unverified registrant may hold.
+      Object.assign(existing, { googleSub: input.sub, provider: "google", emailVerifiedAt: now, passwordHash: "", sessions: [], tokens: [], authVersion: (existing.authVersion ?? 0) + 1 });
+      delete existing.mfa; delete existing.pendingMfa;
+      return { value: users, result: { user: existing, created: false } };
+    }
     if (existing) {
       if (!existing.emailVerifiedAt || existing.disabled || existing.id !== input.linkUserId || existing.googleSub)
         throw new InputError("Hesabı bağlamak için önce mevcut hesabınıza giriş yapın veya parolanızı yenileyin.");
