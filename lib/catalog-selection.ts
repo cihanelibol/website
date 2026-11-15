@@ -39,7 +39,7 @@ export async function getCatalogSelection(raw: CatalogParams) {
   const content = groupKey && Object.hasOwn(CATEGORY_CONTENT, groupKey) ? CATEGORY_CONTENT[groupKey] : undefined;
   const heading = activeCategory?.name ?? content?.title ?? (groupKey ? activeGroup?.title : activeBrand?.label) ?? "Tüm Ürünler";
   const description = content?.description ?? (activeBrand ? `${activeBrand.label} ürünlerini güncel fiyat ve stok bilgileriyle inceleyin. Model, ölçü ve kullanım ihtiyacınıza göre karşılaştırın; ürün uyumu için Gri Akvaryum mağazasından destek alın.` : "Akvaryum, balık yemi, filtre ve ekipmanları güncel fiyat ve stok bilgileriyle inceleyin. Eminönü Gri Akvaryum mağazasından ürün seçimi desteği alın.");
-  return { filters, category, groupKey, brandSlug, search, onlyInStock, sort, groups, activeCategory, activeGroup, activeBrand, brandCounts, products, total, lastPage, page, heading, description, content, base: { ...filters, sayfa: undefined }, hasFilters: Boolean(category || groupKey || brandSlug || search || onlyInStock) };
+  return { filters, category, groupKey, brandSlug, search, onlyInStock, sort, groups, activeCategory, activeGroup, activeBrand, brandCounts, products, total, lastPage, page, heading, description, content, base: { ...filters, sayfa: undefined }, hasFilters: Boolean(category || groupKey || brandSlug || search || !onlyInStock) };
 }
 
 export async function catalogMetadata(raw: CatalogParams) {

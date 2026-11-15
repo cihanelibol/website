@@ -12,8 +12,8 @@ const product: EtProduct = { id: 123, name: "Eheim filtre", description: "Model 
 
 describe("catalogue SEO URL policy", () => {
   it("preserves page two, brand, stock, search and sort when migrating a group URL", () => {
-    const f = parseCatalogParams({ grup: "filtreler", marka: "eheim", stok: "1", q: "filtre", sirala: "price_asc", sayfa: "2" })!;
-    expect(catalogUrl(f)).toBe("/kategori/filtreler?marka=eheim&q=filtre&stok=1&sirala=price_asc&sayfa=2");
+    const f = parseCatalogParams({ grup: "filtreler", marka: "eheim", stok: "0", q: "filtre", sirala: "price_asc", sayfa: "2" })!;
+    expect(catalogUrl(f)).toBe("/kategori/filtreler?marka=eheim&q=filtre&stok=0&sirala=price_asc&sayfa=2");
     expect(catalogNoindex(f, 20)).toBe(true);
   });
   it("does not canonicalize page two to page one", () => {

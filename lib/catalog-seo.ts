@@ -22,8 +22,8 @@ export function parseCatalogParams(raw: CatalogParams): CatalogFilters | null {
   const positiveInteger = (v: string) => /^[1-9]\d*$/.test(v) && Number.isSafeInteger(Number(v));
   if ((p.kategori && !positiveInteger(p.kategori)) || (p.sayfa && !positiveInteger(p.sayfa))) return null;
   if (p.sirala && !["default", "price_asc", "price_desc"].includes(p.sirala)) return null;
-  if (p.stok && p.stok !== "1") return null;
-  return { grup: p.kategori ? undefined : p.grup || undefined, kategori: p.kategori ? Number(p.kategori) : undefined, marka: p.marka || undefined, q: p.q?.trim() || undefined, stok: p.stok === "1", sirala: p.sirala || "default", sayfa: p.sayfa ? Number(p.sayfa) : 1 };
+  if (p.stok && p.stok !== "1" && p.stok !== "0") return null;
+  return { grup: p.kategori ? undefined : p.grup || undefined, kategori: p.kategori ? Number(p.kategori) : undefined, marka: p.marka || undefined, q: p.q?.trim() || undefined, stok: p.stok !== "0", sirala: p.sirala || "default", sayfa: p.sayfa ? Number(p.sayfa) : 1 };
 }
 
 export function catalogUrl(f: CatalogFilters): string {
@@ -35,12 +35,12 @@ export function catalogUrl(f: CatalogFilters): string {
   if (f.kategori) params.set("kategori", String(f.kategori));
   if (f.marka && !path.startsWith("/marka/")) params.set("marka", f.marka);
   if (f.q) params.set("q", f.q);
-  if (f.stok) params.set("stok", "1");
+  if (f.stok === false) params.set("stok", "0");
   if (f.sirala && f.sirala !== "default") params.set("sirala", f.sirala);
   if (f.sayfa && f.sayfa > 1) params.set("sayfa", String(f.sayfa));
   return params.size ? `${path}?${params}` : path;
 }
 
 export function catalogNoindex(f: CatalogFilters, total: number) {
-  return total === 0 || Boolean(f.q || f.stok || (f.sirala && f.sirala !== "default") || (f.marka && (f.grup || f.kategori)));
+  return total === 0 || Boolean(f.q || f.stok === false || (f.sirala && f.sirala !== "default") || (f.marka && (f.grup || f.kategori)));
 }

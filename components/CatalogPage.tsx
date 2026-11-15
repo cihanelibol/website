@@ -24,7 +24,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
           <input type="hidden" name="sirala" value={sort} />
         )}
         {brandSlug && <input type="hidden" name="marka" value={brandSlug} />}
-        {onlyInStock && <input type="hidden" name="stok" value="1" />}
+        {!onlyInStock && <input type="hidden" name="stok" value="0" />}
         <label htmlFor={inputId} className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted">
           {activeCategory || activeGroup ? "Bu kategoride ara" : "Ürün ara"}
         </label>
@@ -54,14 +54,14 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
       >
         <span
           className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs font-bold ${
-            onlyInStock
+            !onlyInStock
               ? "border-transparent bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950"
               : "border-cyan-400/30 text-transparent"
           }`}
         >
           <AppIcon name="check" />
         </span>
-        Stokta olmayanları gizle
+        Stokta olmayanları göster
       </Link>
 
       {/* Kategoriler - ana gruplar + alt kategoriler */}
