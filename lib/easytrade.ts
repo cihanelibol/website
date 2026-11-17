@@ -59,13 +59,21 @@ function catalogUrl(path: string): string {
   return `${BASE_URL}/${slug}${path}`;
 }
 
-async function etFetch(path: string, fresh = false): Promise<unknown> {
+// Katalog yanıtları Vercel Data Cache yerine fonksiyon örneğinin belleğinde tutulur.
+// Data Cache her sayfa render'ında tüm kataloğu okuyup ISR okuma kotasını tüketiyordu;
+// Fluid Compute örnekleri istekler arasında yeniden kullanıldığı için bellek önbelleği
+// aynı tazeliği (4 dk) Data Cache okuması olmadan sağlar.
+const MEMORY_TTL_MS = REVALIDATE_SECONDS * 1000;
+const MEMORY_MAX_ENTRIES = 300;
+const memoryCache = new Map<string, { at: number; value: Promise<unknown> }>();
+
+async function etFetchNetwork(path: string): Promise<unknown> {
   const res = await fetch(catalogUrl(path), {
     headers: {
       Accept: "application/json",
       "X-Requested-With": "XMLHttpRequest",
     },
-    ...(fresh ? { cache: "no-store" as const } : { next: { revalidate: REVALIDATE_SECONDS } }),
+    cache: "no-store",
     signal: AbortSignal.timeout(10_000),
     redirect: "error",
   });
@@ -73,6 +81,24 @@ async function etFetch(path: string, fresh = false): Promise<unknown> {
     throw new Error(`EasyTrade katalog isteği başarısız: ${res.status} (${path})`);
   }
   return boundedJson(res);
+}
+
+async function etFetch(path: string, fresh = false): Promise<unknown> {
+  if (fresh) return etFetchNetwork(path);
+  const now = Date.now();
+  const hit = memoryCache.get(path);
+  if (hit && now - hit.at < MEMORY_TTL_MS) return hit.value;
+  const value = etFetchNetwork(path);
+  memoryCache.delete(path);
+  memoryCache.set(path, { at: now, value });
+  // Hatalı yanıtı önbellekte tutma
+  value.catch(() => { if (memoryCache.get(path)?.value === value) memoryCache.delete(path); });
+  while (memoryCache.size > MEMORY_MAX_ENTRIES) {
+    const oldest = memoryCache.keys().next().value;
+    if (oldest === undefined) break;
+    memoryCache.delete(oldest);
+  }
+  return value;
 }
 
 export type SortOption = "default" | "price_asc" | "price_desc";
@@ -93,7 +119,7 @@ export async function getProducts(opts: {
 }
 
 // Tüm katalog: filtreleme/sayfalama lokalde yapılacağı için bütün sayfalar çekilir.
-// Her sayfa URL'i Next fetch cache'inde 4 dk tutulur; sonraki isteklerde ağa çıkılmaz.
+// Her sayfa URL'i bellek önbelleğinde 4 dk tutulur; sonraki isteklerde ağa çıkılmaz.
 const ALL_PER_PAGE = 48;
 
 export async function getAllProducts(fresh = false): Promise<EtProduct[]> {
