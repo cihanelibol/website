@@ -1,4 +1,4 @@
-﻿"use server";
+"use server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { changePassword, clearSessionCookies, createUser, getSessionUser, setSessionCookies, updateUserProfile, verifyLogin, issueAccountToken, consumeAccountToken, beginMfa, completeMfa } from "@/lib/auth";
@@ -39,7 +39,7 @@ export async function loginAction(_prev: AuthState, data: FormData): Promise<Aut
     await setSessionCookies(user); admin = user.role === "admin";
     await audit("login.success", user.id);
   } catch (error) { return { error: safeError(error) }; }
-  redirect(admin ? "/hesap/guvenlik" : "/hesap");
+  redirect(admin ? "/admin" : "/hesap");
 }
 export async function logoutAction() { await clearSessionCookies(); redirect("/giris"); }
 export async function logoutAllAction() { await clearSessionCookies(true); redirect("/giris"); }

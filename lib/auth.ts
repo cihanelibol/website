@@ -1,4 +1,4 @@
-﻿import "server-only";
+import "server-only";
 import { randomBytes } from "node:crypto";
 import { encodePassword, checkPassword as verifyPassword, passwordNeedsUpgrade } from "./passwords";
 import { cookies } from "next/headers";
@@ -156,7 +156,7 @@ export async function setSessionCookies(snapshot: User) {
   store.set(sessionCookie(), raw, { ...cookieOptions(), maxAge });
   if (sessionCookie() !== "ga_session") store.delete("ga_session");
   store.set(DISPLAY_COOKIE, snapshot.name, { ...cookieOptions(), httpOnly: false, maxAge });
-  store.set(ROLE_COOKIE, "musteri", { ...cookieOptions(), httpOnly: false, maxAge });
+  store.set(ROLE_COOKIE, snapshot.role === "admin" ? "admin" : "musteri", { ...cookieOptions(), httpOnly: false, maxAge });
 }
 async function currentSession() {
   const raw = (await cookies()).get(sessionCookie())?.value;
@@ -185,17 +185,17 @@ export async function clearSessionCookies(all = false) {
 }
 export async function getAdminUser() {
   const data = await currentSession();
-  return data?.user.role === "admin" && data.user.mfa && data.session.mfaAt && Date.now() - data.session.mfaAt < 30 * 60_000 ? data.user : undefined;
+  return data?.user.role === "admin" ? data.user : undefined;
 }
 export async function requireAdmin() {
   const user = await getAdminUser();
-  if (!user) { await audit("admin.denied", undefined, undefined, "denied"); redirect("/hesap/guvenlik"); }
+  if (!user) { await audit("admin.denied", undefined, undefined, "denied"); redirect("/giris"); }
   return user;
 }
 export async function requireFreshAdmin() {
   const data = await currentSession();
-  if (!data || data.user.role !== "admin" || !data.user.mfa || !data.session.mfaAt || Date.now() - data.session.mfaAt > 5 * 60_000)
-    throw new InputError("Bu işlem için güvenlik sayfasında iki aşamalı doğrulamayı yenileyin.");
+  if (!data || data.user.role !== "admin")
+    throw new InputError("Bu işlem için yönetici girişi gerekir.");
   return data.user;
 }
 export async function getProfile() {

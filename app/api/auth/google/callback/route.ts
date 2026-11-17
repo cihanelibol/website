@@ -1,4 +1,4 @@
-﻿import { cookies } from "next/headers";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { findOrCreateGoogleUser, getSessionUser, googleConfigured, setSessionCookies } from "@/lib/auth";
 import { appOrigin, audit, unseal } from "@/lib/security";
@@ -20,6 +20,6 @@ export async function GET(request: Request) {
     const linkUserId = session && session.uid === flow.linkUserId && Date.now() - session.authAt < 300_000 ? session.uid : undefined;
     const { user } = await findOrCreateGoogleUser({ ...identity, linkUserId });
     await setSessionCookies(user); await audit("login.google", user.id);
-    return NextResponse.redirect(`${appOrigin()}${user.role === "admin" ? "/hesap/guvenlik" : "/hesap"}`);
+    return NextResponse.redirect(`${appOrigin()}${user.role === "admin" ? "/admin" : "/hesap"}`);
   } catch { await audit("login.google", undefined, undefined, "denied"); return fail(); }
 }
