@@ -26,44 +26,7 @@ colors:
   error: "#dc2626"
   error-bg: "#fff7f7"
   count-bg: "#fbbf24"
-  ocean-first-paint: "#021526"
-  ocean-surface-light: "#589fa9"
-  ocean-surface-water: "#145268"
-  ocean-water-mid: "#0a364b"
-  ocean-water-top: "#08364c"
-  ocean-water-deep: "#041e33"
-  ocean-abyss: "#010e1c"
-  ocean-text: "#edfbff"
-  ocean-surface-ripple: "#a6e8e548"
-  ocean-ray-soft: "#c2ffff09"
-  ocean-ray-mid: "#a0e8eb15"
-  ocean-ray-bright: "#9df2f21a"
-  ocean-ray-faint: "#c3fbff0b"
-  ocean-floor-ripple: "#74c5d9"
-  ocean-vignette: "#010b18a6"
-  ocean-creature-light: "#7ce3ff29"
-  ocean-particle: "#b9ecf1"
-  ocean-particle-glow: "#9be6ef66"
-  ocean-logo-light: "#00c7e62b"
-  ocean-wordmark-light: "#6ecbdf30"
-  ocean-caret: "#7ee9ee"
-  ocean-skip: "#e0f1f5"
-  ocean-focus: "#a5edf4"
   on-dark-muted: "#cbd5e1"
-  ocean-loader-border: "#98e8f138"
-  ocean-loader-bg: "#031c3159"
-  ocean-loader-shadow: "#01111f66"
-  ocean-loader-light: "#39cad00a"
-  ocean-loader-fill-start: "#42b7d315"
-  ocean-loader-fill-end: "#65e5ee40"
-  ocean-bubble-border: "#a7f3ffb3"
-  ocean-bubble-highlight: "#efffffbd"
-  ocean-bubble-mid: "#7ce7f13d"
-  ocean-bubble-shade: "#30b1ce30"
-  ocean-bubble-edge: "#b4f7ff80"
-  ocean-bubble-glow: "#6ee7ed40"
-  ocean-bubble-inner-light: "#d6fbff66"
-  ocean-bubble-reflection: "#e9ffff"
 typography:
   body:
     fontSize: "16px"
@@ -147,7 +110,7 @@ Yüzey köşeleri `--store-radius` (12px), küçük kontroller `--store-radius-s
 - Dialoglar Tab/Shift+Tab ve Escape destekler. Gövde kaydırması kapatıldığında önceki değer geri yüklenir.
 - Sepet localStorage değişikliklerini sekmeler arasında izler; bozuk kayıtlar güvenli boş duruma döner. Sipariş tekrarlarında aynı requestId kullanılır.
 - Mevcut sipariş yolu mağaza onaylı ve ödemesizdir. Entegrasyon hazır olmadan kart tahsilatı vaat edilmez.
-- Azaltılmış hareket tercihi bileşen bazında uygulanır; tüm animasyonları 0.01ms'e indiren genel kural kullanılmaz. OceanSplash ayrı bileşenin kendi atlama/azaltılmış hareket davranışını kullanır.
+- Azaltılmış hareket tercihi bileşen bazında uygulanır; tüm animasyonları 0.01ms'e indiren genel kural kullanılmaz.
 
 ## Do's and Don'ts
 
@@ -164,8 +127,4 @@ Mağaza metin ölçeği 12, 14, 16, 18, 20, 24, 28, 30, 36, 48 ve 64px rollerind
 
 Bilgi alanları `--store-info*`, başarı alanları `--store-success*`, hata alanları `--store-error*` ailesini kullanır. `count-bg` sepet sayacı içindir; normal gövde metninin arka planı değildir. Nötr ton ve mavi ton dizileri sidecar içinde mevcut kaynak değerleriyle kaydedilir.
 
-### Okyanus açılışı
-
-Kullanıcının istediği sualtı sahnesi ayrı bir görsel yüzeydir. `app/ocean-entry.css` içindeki `--ocean-*` paleti ilk kare ile `OceanSplash.module.css` arasında paylaşılır. `water-*` ve `abyss` su derinliğini; `surface-*`, `ray-*` ve `floor-ripple` ışığı; `loader-*` ve `bubble-*` logo altındaki baloncuk yükleme çubuğunu; `text`, `skip` ve `focus` gerçek arayüz metnini ve odağı tanımlar. Saydam renkler ışık katmanlarının alpha değerleridir, mağaza metin renkleri değildir. Bu değerler dosya veya kural dışlama listesiyle gizlenmez. Açılışın atlama, oturumda bir kez gösterme ve azaltılmış hareket davranışları korunur.
-
-Koyu altbilgide `--store-on-dark-muted` kullanılır; açık yüzeyin ikon rengi koyu zemindeki metne taşınmaz. Açılıştaki dönüşüm efekti kaldırıldığı için kullanılmayan morph/caret palet değerleri de temizlenmiştir.
+Koyu altbilgide `--store-on-dark-muted` kullanılır; açık yüzeyin ikon rengi koyu zemindeki metne taşınmaz. Tam ekran okyanus açılış animasyonu ve `--ocean-*` paleti kaldırılmıştır; ana sayfa doğrudan mağaza içeriğiyle açılır.

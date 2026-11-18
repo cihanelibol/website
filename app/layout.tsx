@@ -5,10 +5,8 @@ import { CartProvider } from "@/components/cart/CartProvider";
 import StoreContactBar from "@/components/StoreContactBar";
 import AnalyticsConsent from "@/components/AnalyticsConsent";
 import { SITE_URL } from "@/lib/site";
-import { OCEAN_INTRO_BOOTSTRAP } from "@/lib/ocean-intro";
 import "./globals.css";
 import "./storefront.css";
-import "./ocean-entry.css";
 
 // CSP nonces are request-specific; never serve a cached HTML nonce.
 export const dynamic = "force-dynamic";
@@ -45,9 +43,6 @@ export default async function RootLayout({
       suppressHydrationWarning
       className="h-full antialiased"
     >
-      <head>
-        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: OCEAN_INTRO_BOOTSTRAP }} />
-      </head>
       <body className="min-h-full flex flex-col">
         <StoreContactBar />
         <CartProvider>{children}</CartProvider>

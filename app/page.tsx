@@ -6,7 +6,6 @@ import SupportChat from "@/components/SupportChat";
 import StorefrontHero from "@/components/StorefrontHero";
 import StoreVisitDrawer from "@/components/StoreVisitDrawer";
 import CloudBrandMarquee from "@/components/CloudBrandMarquee";
-import OceanSplash from "@/components/OceanSplash";
 import ProductCard from "@/components/ProductCard";
 import { getCategories, getAllProducts } from "@/lib/easytrade";
 import { buildCategoryGroups } from "@/lib/catalog";
@@ -63,7 +62,6 @@ export default async function Home() {
     .flatMap((key) => groups.filter((group) => group.key === key));
   return (
     <>
-      <OceanSplash />
       <Navbar />
       <JsonLd data={storeSchema} />
       <main id="main-content" className="store-home">

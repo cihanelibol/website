@@ -6,7 +6,6 @@ import { getAllProducts, type EtProduct } from "@/lib/easytrade";
 import { CONTACT } from "@/lib/site";
 import Footer from "@/components/Footer";
 import CloudBrandMarquee from "@/components/CloudBrandMarquee";
-import OceanSplash from "@/components/OceanSplash";
 import Header from "@/components/home/Header";
 import Icon from "@/components/home/Icon";
 import ProductCard from "@/components/home/ProductCard";
@@ -60,7 +59,6 @@ async function FeaturedProducts() {
 
 export default function HomeV2() {
   return <div className={s.page}>
-    <OceanSplash />
     <a href="#main-content" className={s.skipLink}>İçeriğe geç</a>
     <Header />
     <main id="main-content" className={s.container}>
