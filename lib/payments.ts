@@ -3,33 +3,69 @@ import { createHmac, randomBytes } from "node:crypto";
 import { SITE_URL } from "./site";
 
 // Ödeme altyapısı — iyzico Checkout Form (ortak ödeme sayfası).
-// Ortam değişkenleri: IYZICO_API_KEY, IYZICO_SECRET_KEY ve isteğe bağlı IYZICO_BASE_URL
-// (varsayılan sandbox: https://sandbox-api.iyzipay.com; canlı: https://api.iyzipay.com).
+// Ortam değişkenleri: IYZICO_API_KEY, IYZICO_SECRET_KEY ve isteğe bağlı IYZICO_BASE_URL.
+// Ortam anahtarın kendisinden çıkarılır: iyzico sandbox anahtarları "sandbox-" önekiyle
+// başlar (→ https://sandbox-api.iyzipay.com), canlı anahtarlar başlamaz (→ https://api.iyzipay.com).
+// IYZICO_BASE_URL verilirse anahtarla uyuşmak zorundadır; uyuşmazsa ödeme kapalı kalır
+// (aksi halde iyzico "api bilgileri bulunamadı" / 1001 döner).
 // Anahtarlar tanımlı değilse sepet "mağaza onaylı sipariş" (ödemesiz) modunda kalır.
 // Kart bilgisi hiçbir zaman bu siteye gelmez; ödeme iyzico sayfasında alınır ve
 // sonuç callback'te iyzico'dan sunucu tarafında yeniden sorgulanarak doğrulanır.
 
+const SANDBOX_URL = "https://sandbox-api.iyzipay.com";
+const LIVE_URL = "https://api.iyzipay.com";
+
+/** Vercel'e yapıştırırken gelen boşluk / satır sonu da 1001 hatası üretir; kırpılır. */
+function keys(): { apiKey: string; secret: string } | null {
+  const apiKey = process.env.IYZICO_API_KEY?.trim(), secret = process.env.IYZICO_SECRET_KEY?.trim();
+  return apiKey && secret ? { apiKey, secret } : null;
+}
+
+type IyzicoEnv = { ok: true; url: string; sandbox: boolean } | { ok: false; error: string };
+
+function resolveEnv(): IyzicoEnv {
+  const k = keys();
+  if (!k) return { ok: false, error: "iyzico anahtarları tanımlı değil" };
+  const keySandbox = k.apiKey.startsWith("sandbox-");
+  const explicit = process.env.IYZICO_BASE_URL?.trim().replace(/\/+$/, "");
+  if (!explicit) return { ok: true, url: keySandbox ? SANDBOX_URL : LIVE_URL, sandbox: keySandbox };
+  if (explicit !== SANDBOX_URL && explicit !== LIVE_URL) return { ok: false, error: "IYZICO_BASE_URL geçersiz" };
+  const urlSandbox = explicit === SANDBOX_URL;
+  if (urlSandbox !== keySandbox) {
+    return { ok: false, error: `iyzico anahtarı (${keySandbox ? "sandbox" : "canlı"}) IYZICO_BASE_URL (${urlSandbox ? "sandbox" : "canlı"}) ile uyuşmuyor` };
+  }
+  return { ok: true, url: explicit, sandbox: urlSandbox };
+}
+
 export function paymentConfigured(): boolean {
-  return Boolean(process.env.IYZICO_API_KEY && process.env.IYZICO_SECRET_KEY);
+  return keys() !== null;
 }
 
 export function paymentIsSandbox(): boolean {
-  return !process.env.IYZICO_BASE_URL || process.env.IYZICO_BASE_URL.includes("sandbox");
+  const env = resolveEnv();
+  return env.ok ? env.sandbox : true;
 }
 
 /**
  * Bu ziyaretçi kartla ödeyebilir mi? Sandbox modunda test kartları gerçek para çekmeden
  * "ödendi" sonucu üretir; bu yüzden sandbox yalnız yöneticilere açılır, müşteriler
- * ödemesiz sipariş akışında kalır.
+ * ödemesiz sipariş akışında kalır. Ortam çözümlenemiyorsa (uyuşmazlık) kapalıdır.
  */
 export function cardPaymentAvailable(isAdmin: boolean): boolean {
-  return paymentConfigured() && (!paymentIsSandbox() || isAdmin);
+  const env = resolveEnv();
+  return env.ok && (!env.sandbox || isAdmin);
+}
+
+/** Yönetici paneli için: yapılandırma hatası varsa açıklaması, yoksa null. */
+export function paymentConfigError(): string | null {
+  const env = resolveEnv();
+  return paymentConfigured() && !env.ok ? env.error : null;
 }
 
 function baseUrl(): string {
-  const url = process.env.IYZICO_BASE_URL || "https://sandbox-api.iyzipay.com";
-  if (!/^https:\/\/(sandbox-)?api\.iyzipay\.com$/.test(url)) throw new Error("IYZICO_BASE_URL geçersiz");
-  return url;
+  const env = resolveEnv();
+  if (!env.ok) throw new Error(env.error);
+  return env.url;
 }
 
 function appOrigin(): string {
@@ -39,13 +75,15 @@ function appOrigin(): string {
 
 /** IYZWSv2: HMAC-SHA256(secret, randomKey + uriPath + body). */
 async function iyzicoRequest<T>(path: string, body: Record<string, unknown>): Promise<T> {
-  const apiKey = process.env.IYZICO_API_KEY, secret = process.env.IYZICO_SECRET_KEY;
-  if (!apiKey || !secret) throw new Error("iyzico anahtarları tanımlı değil");
+  const k = keys();
+  if (!k) throw new Error("iyzico anahtarları tanımlı değil");
+  const { apiKey, secret } = k;
+  const url = baseUrl() + path;
   const json = JSON.stringify(body);
   const randomKey = `${Date.now()}${randomBytes(8).toString("hex")}`;
   const signature = createHmac("sha256", secret).update(randomKey + path + json).digest("hex");
   const auth = Buffer.from(`apiKey:${apiKey}&randomKey:${randomKey}&signature:${signature}`).toString("base64");
-  const res = await fetch(baseUrl() + path, {
+  const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json", Authorization: `IYZWSv2 ${auth}`, "x-iyzi-rnd": randomKey },
     body: json,

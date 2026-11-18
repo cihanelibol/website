@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/auth";
 import { getAllOrders } from "@/lib/orders";
 import { getAdminMembers } from "@/lib/admin-data";
 import { emailConfigured } from "@/lib/email";
-import { paymentConfigured, paymentIsSandbox } from "@/lib/payments";
+import { paymentConfigError, paymentConfigured, paymentIsSandbox } from "@/lib/payments";
 import OrdersBoard from "./OrdersBoard";
 import { orderGroup } from "./order-groups";
 
@@ -33,6 +33,7 @@ export default async function AdminSiparislerPage() {
   ];
 
   const card = paymentConfigured();
+  const cardError = paymentConfigError();
 
   return (
     <div className="space-y-6">
@@ -49,12 +50,14 @@ export default async function AdminSiparislerPage() {
       </div>
 
       <div className="space-y-2">
-        <div className={`rounded-2xl border px-5 py-3 text-sm leading-relaxed ${card && !paymentIsSandbox() ? "border-teal-400/30 bg-teal-400/10 text-teal-300" : "border-amber-400/30 bg-amber-400/10 text-amber-300"}`}>
+        <div className={`rounded-2xl border px-5 py-3 text-sm leading-relaxed ${card && !cardError && !paymentIsSandbox() ? "border-teal-400/30 bg-teal-400/10 text-teal-300" : "border-amber-400/30 bg-amber-400/10 text-amber-300"}`}>
           <AppIcon name="lock" />{" "}
-          {!card ? (
-            <><strong>Kartla ödeme kapalı.</strong> Siparişler ödemesiz gelir; tahsilatı siz yapar, panelden &quot;Ödemeyi aldım&quot; ile kaydedersiniz. iyzico&apos;yu açmak için Vercel&apos;e <code>IYZICO_API_KEY</code>, <code>IYZICO_SECRET_KEY</code> ve <code>IYZICO_BASE_URL=https://api.iyzipay.com</code> ekleyin.</>
+          {cardError ? (
+            <><strong>Kartla ödeme kapalı: yapılandırma hatası.</strong> {cardError}. Canlı anahtarlarla <code>IYZICO_BASE_URL</code>&apos;i silin ya da <code>https://api.iyzipay.com</code> yapın; sandbox anahtarlarıyla <code>https://sandbox-api.iyzipay.com</code> kullanın.</>
+          ) : !card ? (
+            <><strong>Kartla ödeme kapalı.</strong> Siparişler ödemesiz gelir; tahsilatı siz yapar, panelden &quot;Ödemeyi aldım&quot; ile kaydedersiniz. iyzico&apos;yu açmak için Vercel&apos;e <code>IYZICO_API_KEY</code>, <code>IYZICO_SECRET_KEY</code> ekleyin; canlı/sandbox ortamı anahtardan otomatik seçilir.</>
           ) : paymentIsSandbox() ? (
-            <><strong>iyzico test (sandbox) modunda.</strong> Kartla ödeme yalnız yönetici hesabına görünür; müşteriler ödemesiz sipariş verir. Gerçek para çekilmez. Canlıya geçmek için <code>IYZICO_BASE_URL=https://api.iyzipay.com</code> ve canlı anahtarları girin.</>
+            <><strong>iyzico test (sandbox) modunda.</strong> Kartla ödeme yalnız yönetici hesabına görünür; müşteriler ödemesiz sipariş verir. Gerçek para çekilmez. Canlıya geçmek için merchant panelindeki canlı anahtarları girin (<code>sandbox-</code> öneki olmayan).</>
           ) : (
             <><strong>iyzico ile kartla ödeme açık.</strong> Ödenen siparişler EasyTrade&apos;e otomatik iletilir.</>
           )}
