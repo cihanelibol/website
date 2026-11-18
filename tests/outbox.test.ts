@@ -7,7 +7,7 @@ import { POST } from "../app/api/internal/notifications/route";
 type Row = { id: string; notifications: Notification[] };
 async function queued() {
   vi.stubEnv("ADMIN_EMAILS", "operator@example.test");
-  const { order } = await reserveOrder({ userId: null, customerName: "<script>test</script>", email: "buyer@example.test", phone: "5555555555", addressText: "Synthetic address", items: [{ id: 1, name: "Test", qty: 1, price: 10 }], total: 10, paymentMethod: "iyzico-bekliyor", paymentStatus: "beklemede" }, "test-key", "test-fingerprint");
+  const { order } = await reserveOrder({ userId: null, customerName: "<script>test</script>", email: "buyer@example.test", phone: "5555555555", addressText: "Synthetic address", items: [{ id: 1, name: "Test", qty: 1, price: 10 }], total: 10, paymentMethod: "iyzico-bekliyor", paymentStatus: "odendi" }, "test-key", "test-fingerprint");
   await markOrderSubmission(order.id, "sent", { reference: "ET-1", total: 10, currency: "TRY" });
   return order.id;
 }
@@ -16,6 +16,15 @@ function mailProvider() {
   const send = vi.fn(async () => Response.json({ id: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee" }));
   vi.stubGlobal("fetch", send); return send;
 }
+it("does not send an old queued customer confirmation before payment", async () => {
+  await queued();
+  await updateJson<(Row & { paymentStatus: string })[], void>("orders.json", [], rows => { rows[0].paymentStatus = "beklemede"; return { value: rows, result: undefined }; });
+  const send = mailProvider();
+  await dispatchOrderNotifications();
+  expect(send).toHaveBeenCalledTimes(1);
+  const body = JSON.parse((send.mock.calls[0] as unknown as [string, RequestInit])[1].body as string);
+  expect(body.to).not.toContain("buyer@example.test");
+});
 it("commits notifications with acknowledgement and excludes them from the customer DTO", async () => {
   const id = await queued();
   await markOrderSubmission(id, "sent", { reference: "ET-1", total: 10, currency: "TRY" });

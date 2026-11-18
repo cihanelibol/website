@@ -1,6 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "schedules": {
+    "payment-reconciliation": {
+      "schedule": "*/5 * * * *",
+      "path": "/api/internal/payments",
+      "requestMethod": "POST"
+    },
     "order-notifications": {
       "schedule": "*/15 * * * *",
       "path": "/api/internal/notifications",

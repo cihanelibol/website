@@ -56,7 +56,7 @@ CREATE TABLE app_security.orders (
   amount numeric(12,2) GENERATED ALWAYS AS ((data->>'total')::numeric) STORED NOT NULL CHECK (amount > 0 AND amount <= 1000000),
   status text GENERATED ALWAYS AS (coalesce(data->>'status', 'yeni')) STORED NOT NULL
     CHECK (status IN ('yeni','onaylandi','hazirlaniyor','kargoda','teslim-edildi','iptal')),
-  payment_status text GENERATED ALWAYS AS (data->>'paymentStatus') STORED NOT NULL CHECK (payment_status IN ('beklemede','odendi')),
+  payment_status text GENERATED ALWAYS AS (data->>'paymentStatus') STORED NOT NULL CHECK (payment_status IN ('beklemede','odendi','basarisiz','kontrol')),
   CHECK (data ? 'items' AND jsonb_typeof(data->'items') = 'array'),
   CHECK (NOT data ? 'submission' OR data->>'submission' IN ('pending','sent','unknown'))
 );

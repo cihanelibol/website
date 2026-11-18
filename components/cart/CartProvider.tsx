@@ -28,6 +28,7 @@ type CartContextValue = {
   remove: (id: number) => void;
   setQty: (id: number, qty: number) => void;
   clear: () => void;
+  completeOrder: (id: string, purchased: { id: number; qty: number }[]) => void;
   totalCount: number;
   totalAmount: number;
 };
@@ -109,12 +110,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const clear = useCallback(() => updateItems(() => []), []);
+  const completeOrder = useCallback((id: string, purchased: { id: number; qty: number }[]) => {
+    // Keep receipts across refreshes and React Strict Mode. If storage is blocked, keep the cart.
+    try {
+      const key = `ga_cart_completed_${id}`;
+      if (localStorage.getItem(key)) return;
+      const draft = JSON.parse(sessionStorage.getItem("ga_checkout_draft") ?? "null");
+      // Opening an emailed receipt in another session must not consume that session's cart.
+      if (draft?.resultUrl !== `/sepet/sonuc?siparis=${id}`) return;
+      localStorage.setItem(key, "1");
+      updateItems(current => current.flatMap(item => {
+        const qty = item.qty - (purchased.find(p => p.id === item.id)?.qty ?? 0);
+        return qty > 0 ? [{ ...item, qty }] : [];
+      }));
+      sessionStorage.removeItem("ga_checkout_draft");
+    } catch { /* Do not clear items when completion cannot be remembered. */ }
+  }, []);
 
   const value = useMemo<CartContextValue>(() => {
     const totalCount = items.reduce((s, i) => s + i.qty, 0);
     const totalAmount = items.reduce((s, i) => s + Math.round(i.price * 100) * i.qty, 0) / 100;
-    return { items, add, remove, setQty, clear, totalCount, totalAmount };
-  }, [items, add, remove, setQty, clear]);
+    return { items, add, remove, setQty, clear, completeOrder, totalCount, totalAmount };
+  }, [items, add, remove, setQty, clear, completeOrder]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

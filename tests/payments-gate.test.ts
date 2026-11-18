@@ -8,6 +8,10 @@ function keys(apiKey: string, secret = "s") {
 }
 
 describe("card payment availability", () => {
+  it("never enables sandbox on a production deployment, including for admins", () => {
+    keys("sandbox-key"); vi.stubEnv("VERCEL_ENV", "production");
+    expect(cardPaymentAvailable(true)).toBe(false);
+  });
   it("stays off without keys", () => {
     vi.stubEnv("IYZICO_API_KEY", ""); vi.stubEnv("IYZICO_SECRET_KEY", "");
     expect(cardPaymentAvailable(true)).toBe(false);

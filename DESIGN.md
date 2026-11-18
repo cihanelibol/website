@@ -109,7 +109,7 @@ Yüzey köşeleri `--store-radius` (12px), küçük kontroller `--store-radius-s
 - Arama modalında ok tuşları gerçek sonuç düğmelerine odak taşır. Ağ hatası boş sonuç değildir; sorgu korunarak tekrar denenir.
 - Dialoglar Tab/Shift+Tab ve Escape destekler. Gövde kaydırması kapatıldığında önceki değer geri yüklenir.
 - Sepet localStorage değişikliklerini sekmeler arasında izler; bozuk kayıtlar güvenli boş duruma döner. Sipariş tekrarlarında aynı requestId kullanılır.
-- Mevcut sipariş yolu mağaza onaylı ve ödemesizdir. Entegrasyon hazır olmadan kart tahsilatı vaat edilmez.
+- Online siparişler doğrulanmış kart ödemesi gerektirir. Ödeme altyapısı hazır değilse gönderim kapalıdır. Sonuç ekranı ödeme, aktarım ve hazırlık durumlarını kayıtlı veriden gösterir; belirsiz sonuçta tekrar ödeme önerilmez.
 - Azaltılmış hareket tercihi bileşen bazında uygulanır; tüm animasyonları 0.01ms'e indiren genel kural kullanılmaz.
 
 ## Do's and Don'ts

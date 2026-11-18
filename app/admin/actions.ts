@@ -5,7 +5,20 @@ import { updateOrderStatus, reconcileOrder, recordManualPayment, ORDER_STATUS_FL
 import { dispatchOrderNotifications } from "@/lib/order-outbox";
 import { guardRate, safeError, textField, InputError } from "@/lib/security";
 import { moderateReview } from "@/lib/reviews";
+import { getPaymentCheck } from "@/lib/orders";
+import { processPaymentToken } from "@/lib/payment-processing";
 export type AdminActionState = { ok?: boolean; error?: string; emailSent?: boolean; emailQueued?: boolean };
+export async function checkPaymentAction(id: string): Promise<AdminActionState> {
+  try {
+    const admin = await getAdminUser(); if (!admin) throw new InputError("Yönetici doğrulaması gerekir.");
+    await guardRate("admin-payment-check", 10, 60, admin.id);
+    const check = await getPaymentCheck(textField(id, 40, 1));
+    if (!check?.token) throw new InputError("Sorgulanabilir ödeme kaydı bulunamadı. iyzico panelinden kontrol edin.");
+    if (!check.paid) await processPaymentToken(check.token);
+    revalidatePath("/admin"); revalidatePath("/hesap/siparisler");
+    return { ok: true };
+  } catch (error) { return { error: safeError(error) }; }
+}
 export async function updateOrderStatusAction(input: { orderId: string; status: OrderStatus; cargoFirma?: string; cargoTakipNo?: string; note?: string; notifyCustomer: boolean }): Promise<AdminActionState> {
   try {
     const admin = await getAdminUser(); if (!admin) throw new InputError("Bu işlem için yönetici doğrulaması gerekir.");
@@ -36,6 +49,7 @@ export async function reconcileAction(_previous: AdminActionState, data: FormDat
     if (data.get("kind") === "payment") await recordManualPayment(id, Number(data.get("total")), reference, note);
     else if (data.get("kind") === "submission") await reconcileOrder(id, reference, note);
     else throw new InputError("Geçersiz işlem.");
+    await dispatchOrderNotifications(id, 3).catch(() => undefined);
     revalidatePath("/admin"); revalidatePath("/hesap/siparisler"); return { ok: true };
   } catch (error) { return { error: safeError(error) }; }
 }

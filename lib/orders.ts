@@ -1,5 +1,7 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
+import { cookies } from "next/headers";
+import { orderCookieName, validOrderAccess } from "./order-access";
 import { readJson, updateJson } from "./storage";
 import { getSessionUser, requireAdmin, requireFreshAdmin } from "./auth";
 import { audit, InputError, textField } from "./security";
@@ -9,7 +11,8 @@ import { queueNotification, type Notification } from "./order-outbox";
 import { orderReceivedMessage, adminNewOrderMessage, orderStatusMessage } from "./email";
 export { ORDER_STATUS_FLOW, ORDER_STATUS_LABELS, type OrderRecord, type OrderStatus } from "./order-types";
 const FILE = "orders.json";
-type StoredOrder = OrderRecord & { notifications?: Notification[]; requestKey?: string; fingerprint?: string; submission?: "pending" | "sent" | "unknown"; providerPayload?: OrderPayload; paymentToken?: string };
+type PaymentAttempt = { state: "initializing" | "ready" | "unknown"; startedAt: number; token?: string; url?: string; expiresAt?: number };
+type StoredOrder = OrderRecord & { notifications?: Notification[]; requestKey?: string; fingerprint?: string; providerPayload?: OrderPayload; paymentToken?: string; paymentTokens?: string[]; paymentAttempt?: PaymentAttempt; forwardingStarted?: boolean; paymentCheckedAt?: number };
 function publicOrder(record: StoredOrder): OrderRecord {
   const { paymentEvidence, reconciliation, ...order } = adminOrder(record);
   void paymentEvidence; void reconciliation;
@@ -17,9 +20,9 @@ function publicOrder(record: StoredOrder): OrderRecord {
 }
 /** Yönetici görünümü: ödeme/uzlaştırma kanıtı dahil, iç anahtarlar hariç. */
 function adminOrder(record: StoredOrder): OrderRecord {
-  const { requestKey, fingerprint, notifications, providerPayload, paymentToken, ...order } = record;
+  const { requestKey, fingerprint, notifications, providerPayload, paymentToken, paymentTokens, paymentAttempt, forwardingStarted, paymentCheckedAt, ...order } = record;
   void requestKey; void fingerprint; void providerPayload; void paymentToken;
-  void notifications;
+  void notifications; void paymentTokens; void paymentAttempt; void forwardingStarted; void paymentCheckedAt;
   return order;
 }
 /**
@@ -48,7 +51,7 @@ export async function markOrderSubmission(id: string, submission: "sent" | "unkn
       if (submission === "sent" && (!receipt?.reference || receipt.currency !== "TRY" || Math.round(receipt.total * 100) !== providerTotalCents)) throw new Error("Verified external receipt required");
       order.submission = submission;
       if (receipt) order.providerReference = receipt.reference;
-      if (submission === "sent") queueConfirmation(order);
+      if (submission === "sent") confirmPaidOrder(order);
     }
     return { value: all, result: undefined };
   });
@@ -56,7 +59,16 @@ export async function markOrderSubmission(id: string, submission: "sent" | "unkn
 export async function getOrdersByUser(userId: string): Promise<OrderRecord[]> {
   const session = await getSessionUser();
   if (!session || session.uid !== userId) throw new InputError("Yetkiniz yok.");
-  return (await readJson<StoredOrder[]>(FILE, [])).filter(o => o.userId === userId && !awaitingPaymentOrder(o)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(publicOrder);
+  return (await readJson<StoredOrder[]>(FILE, [])).filter(o => o.userId === userId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(publicOrder);
+}
+export async function getCustomerOrder(id: string, access?: string): Promise<OrderRecord | undefined> {
+  if (!/^GA-[A-F0-9]{24}$/.test(id)) return;
+  const authorized = validOrderAccess(id, access) || validOrderAccess(id, (await cookies()).get(orderCookieName(id))?.value);
+  const session = authorized ? undefined : await getSessionUser();
+  if (!authorized && !session) return;
+  const order = (await readJson<StoredOrder[]>(FILE, [])).find(o => o.id === id);
+  if (!order || (!authorized && order.userId !== session?.uid)) return;
+  return publicOrder(order);
 }
 export async function getAllOrders(): Promise<OrderRecord[]> {
   await requireAdmin();
@@ -71,7 +83,8 @@ export async function updateOrderStatus(id: string, status: OrderStatus, opts: {
     const current = order.status ?? "yeni";
     if (!transitions[current]?.includes(status)) throw new InputError("Bu durum geçişine izin verilmiyor.");
     if (order.submission && order.submission !== "sent") throw new InputError("Önce dış sipariş aktarımını uzlaştırın.");
-    if (status !== "iptal" && awaitingPaymentOrder(order)) throw new InputError("Kartla ödeme tamamlanmadı; bu sipariş yalnızca iptal edilebilir.");
+    if (status !== "iptal" && (order.paymentStatus !== "odendi" || order.paymentSandbox)) throw new InputError("Gerçek ödeme doğrulanmadan sipariş hazırlığa alınamaz.");
+    if (status === "kargoda" && (!opts.cargo?.firma?.trim() || !opts.cargo?.takipNo?.trim())) throw new InputError("Kargo firması ve takip numarası gerekli.");
     order.status = status;
     if (opts.cargo) order.cargo = opts.cargo;
     // Fulfilment is not proof of payment. Never mark paid from a delivery event.
@@ -93,69 +106,149 @@ export async function reconcileOrder(id: string, reference: string, note: string
     order.submission = "sent";
     order.reconciliation = { actor: admin.id, at: new Date().toISOString(), reference, note };
     order.providerReference = reference;
-    queueConfirmation(order);
+    confirmPaidOrder(order);
     return { value: all, result: undefined };
   });
   await audit("order.reconciled", admin.id, id);
 }
 function queueConfirmation(order: StoredOrder) {
+  if (order.paymentStatus !== "odendi" || order.submission !== "sent" || order.paymentSandbox || order.status === "iptal") return;
   queueNotification(order, `${order.id}/received`, orderReceivedMessage(order));
   queueNotification(order, `${order.id}/admin`, adminNewOrderMessage(order));
+}
+function confirmPaidOrder(order: StoredOrder) {
+  if (order.paymentStatus !== "odendi" || order.paymentSandbox || order.status === "iptal") return;
+  if (!order.status || order.status === "yeni") {
+    order.status = "onaylandi";
+    order.history = [...(order.history ?? []), { status: "onaylandi", at: new Date().toISOString(), note: "Ödeme doğrulandı ve sipariş aktarımı tamamlandı." }];
+  }
+  queueConfirmation(order);
 }
 export async function recordManualPayment(id: string, total: number, reference: string, note: string) {
   const admin = await requireFreshAdmin();
   reference = textField(reference, 120, 3); note = textField(note, 500, 10);
   await updateJson<StoredOrder[], void>(FILE, [], all => {
     const order = all.find(o => o.id === id);
-    if (!order || order.status === "iptal" || order.paymentStatus !== "beklemede" || (order.submission && order.submission !== "sent")) throw new InputError("Bu siparişe tahsilat kaydedilemez.");
+    if (!order || order.paymentMethod !== "iyzico-bekliyor" || order.status === "iptal" || order.paymentStatus !== "beklemede" || (order.submission && order.submission !== "sent")) throw new InputError("Bu siparişe tahsilat kaydedilemez.");
     if (!Number.isFinite(total) || Math.round(total * 100) !== Math.round(order.total * 100)) throw new InputError("Tahsilat tutarı siparişle eşleşmiyor.");
     order.paymentStatus = "odendi";
     order.paymentEvidence = { actor: admin.id, at: new Date().toISOString(), reference, note };
+    if (order.submission === "sent") confirmPaidOrder(order);
     return { value: all, result: undefined };
   });
   await audit("order.manual_payment", admin.id, id);
 }
 
 function awaitingPaymentOrder(order: StoredOrder) {
-  return order.paymentMethod === "iyzico" && order.paymentStatus === "beklemede" && !order.submission && (order.status ?? "yeni") !== "iptal";
+  return order.paymentMethod === "iyzico" && order.paymentStatus !== "odendi" && !order.submission && (order.status ?? "yeni") !== "iptal";
 }
-/** Ödeme sayfası her başlatıldığında yeni token saklanır; callback yalnızca bu token'ı kabul eder. */
-export async function attachPaymentToken(id: string, token: string) {
+/** Atomic claim prevents two tabs/retries from opening independent payment sessions. */
+export async function claimPaymentAttempt(id: string): Promise<{ url?: string }> {
+  return updateJson<StoredOrder[], { url?: string }>(FILE, [], all => {
+    const order = all.find(o => o.id === id);
+    if (!order || !awaitingPaymentOrder(order)) throw new InputError("Sipariş ödeme beklemiyor.");
+    const attempt = order.paymentAttempt;
+    if (order.paymentStatus === "kontrol") throw new InputError("Ödeme sonucu kontrol bekliyor. Yeniden ödeme yapmayın; sipariş durumunu kontrol edin.");
+    if (order.paymentStatus !== "basarisiz" && attempt) {
+      if (attempt.state === "ready" && attempt.url && (attempt.expiresAt ?? 0) > Date.now()) return { value: all, result: { url: attempt.url } };
+      throw new InputError("Ödeme işleminiz sürüyor veya kontrol bekliyor. Sipariş durumunu kontrol edin.");
+    }
+    // Old records with an unresolved token must be checked before another charge.
+    if (order.paymentToken && !attempt && order.paymentStatus !== "basarisiz") throw new InputError("Önce mevcut ödeme sonucunu kontrol edin.");
+    order.paymentAttempt = { state: "initializing", startedAt: Date.now() };
+    order.paymentStatus = "beklemede";
+    return { value: all, result: {} };
+  });
+}
+
+export async function attachPaymentToken(id: string, token: string, url?: string, expiresIn = 1800) {
   await updateJson<StoredOrder[], void>(FILE, [], all => {
     const order = all.find(o => o.id === id);
     if (!order || !awaitingPaymentOrder(order)) throw new InputError("Sipariş ödeme beklemiyor.");
+    order.paymentTokens = [...new Set([...(order.paymentTokens ?? []), ...(order.paymentToken ? [order.paymentToken] : []), token])];
     order.paymentToken = token;
+    order.paymentAttempt = { state: "ready", startedAt: Date.now(), token, url, expiresAt: Date.now() + Math.min(1800, Math.max(1, expiresIn)) * 1000 };
     return { value: all, result: undefined };
   });
+}
+export async function markPaymentUncertain(id: string) {
+  await updateJson<StoredOrder[], void>(FILE, [], all => {
+    const order = all.find(o => o.id === id);
+    if (order && order.paymentStatus !== "odendi") {
+      order.paymentCheckedAt = Date.now();
+      order.paymentStatus = "kontrol";
+      if (order.paymentAttempt?.state === "initializing") order.paymentAttempt.state = "unknown";
+    }
+    return { value: all, result: undefined };
+  });
+}
+export async function markPaymentStartRejected(id: string) {
+  await updateJson<StoredOrder[], void>(FILE, [], all => {
+    const order = all.find(o => o.id === id);
+    if (order?.paymentAttempt?.state === "initializing" && order.paymentStatus !== "odendi") order.paymentStatus = "basarisiz";
+    return { value: all, result: undefined };
+  });
+}
+
+export async function getPaymentCheck(id: string) {
+  const order = (await readJson<StoredOrder[]>(FILE, [])).find(o => o.id === id && o.paymentMethod === "iyzico");
+  return order ? { token: order.paymentToken, paid: order.paymentStatus === "odendi" } : undefined;
+}
+
+export async function getPaymentOrderId(token: string) {
+  return (await readJson<StoredOrder[]>(FILE, [])).find(o => o.paymentToken === token || o.paymentTokens?.includes(token))?.id;
+}
+export async function getPaymentRestart(id: string) {
+  const order = (await readJson<StoredOrder[]>(FILE, [])).find(o => o.id === id);
+  return order?.providerPayload ? { order: publicOrder(order), address: order.providerPayload.shipping_address } : undefined;
+}
+
+export async function claimOrderForward(id: string) {
+  return updateJson<StoredOrder[], boolean>(FILE, [], all => {
+    const order = all.find(o => o.id === id);
+    if (!order || order.paymentStatus !== "odendi" || order.paymentSandbox || order.status === "iptal" || order.submission !== "pending" || order.forwardingStarted) return { value: all, result: false };
+    order.forwardingStarted = true;
+    return { value: all, result: true };
+  });
+}
+
+export async function paymentCheckCandidates(limit = 5) {
+  return (await readJson<StoredOrder[]>(FILE, [])).filter(o => o.paymentMethod === "iyzico" && o.paymentStatus !== "odendi" && o.paymentStatus !== "basarisiz" && o.paymentToken && (o.paymentStatus === "kontrol" || (o.paymentAttempt?.expiresAt ?? 0) <= Date.now())).sort((a, b) => (a.paymentCheckedAt ?? 0) - (b.paymentCheckedAt ?? 0)).slice(0, limit).map(o => ({ id: o.id, token: o.paymentToken! }));
 }
 export type PaymentOutcome = { orderId: string; result: "paid" | "already-paid" | "failed" | "mismatch"; payload?: OrderPayload };
 /**
  * iyzico sonucu sunucu tarafında sorgulandıktan sonra çağrılır. Tutar, para birimi,
  * sepet kimliği ve token siparişle birebir eşleşmeden ödendi işaretlenmez.
  */
-export async function settleIyzicoPayment(token: string, verified: { paymentStatus?: string; fraudStatus?: number; paymentId?: string; paidPrice?: number; currency?: string; basketId?: string }): Promise<PaymentOutcome | undefined> {
+export async function settleIyzicoPayment(token: string, verified: { status: string; paymentStatus?: string; fraudStatus?: number; paymentId?: string; paidPrice?: number; currency?: string; basketId?: string }): Promise<PaymentOutcome | undefined> {
   return updateJson<StoredOrder[], PaymentOutcome | undefined>(FILE, [], all => {
-    const order = all.find(o => o.paymentToken === token && o.paymentMethod === "iyzico");
+    const order = all.find(o => (o.paymentToken === token || o.paymentTokens?.includes(token)) && o.paymentMethod === "iyzico");
     if (!order) return { value: all, result: undefined };
     if (order.paymentStatus === "odendi") return { value: all, result: { orderId: order.id, result: "already-paid" } };
+    order.paymentCheckedAt = Date.now();
     const now = new Date().toISOString();
-    const success = verified.paymentStatus === "SUCCESS" && verified.fraudStatus === 1;
+    const success = verified.status === "success" && verified.paymentStatus === "SUCCESS" && verified.fraudStatus === 1;
     if (!success) {
-      if (verified.fraudStatus === 0 && verified.paymentStatus === "SUCCESS") {
+      if (verified.status !== "success" || verified.paymentStatus !== "FAILURE") {
         // iyzico incelemesinde: para çekildi ama onay bekliyor. Siparişi açık bırak, operatör kontrol etsin.
         order.history = [...(order.history ?? []), { status: order.status ?? "yeni", at: now, note: `iyzico ödeme incelemede (${verified.paymentId ?? "?"})`, actor: "iyzico" }];
+        if (order.paymentToken === token) order.paymentStatus = "kontrol";
         return { value: all, result: { orderId: order.id, result: "mismatch" } };
       }
+      if (order.paymentToken === token) order.paymentStatus = "basarisiz";
       return { value: all, result: { orderId: order.id, result: "failed" } };
     }
     const matches = verified.basketId === order.id && verified.currency === "TRY" && Math.round((verified.paidPrice ?? -1) * 100) === Math.round(order.total * 100) && Boolean(verified.paymentId);
     if (!matches) {
+      order.paymentStatus = "kontrol";
       order.history = [...(order.history ?? []), { status: order.status ?? "yeni", at: now, note: `iyzico tutar/sepet eşleşmedi — elle kontrol edin (${verified.paymentId ?? "?"})`, actor: "iyzico" }];
       return { value: all, result: { orderId: order.id, result: "mismatch" } };
     }
     order.paymentStatus = "odendi";
     order.paymentEvidence = { actor: "iyzico", at: now, reference: verified.paymentId!, note: "iyzico ortak ödeme sayfası, sunucu tarafında doğrulandı" };
     order.history = [...(order.history ?? []), { status: order.status ?? "yeni", at: now, note: "Kartla ödeme alındı (iyzico)", actor: "iyzico" }];
+    // A late capture on a cancelled order requires operator/refund review, never fulfilment.
+    if (order.status === "iptal" || order.paymentSandbox) return { value: all, result: { orderId: order.id, result: "paid" } };
     order.submission = "pending";
     return { value: all, result: { orderId: order.id, result: "paid", payload: order.providerPayload } };
   });

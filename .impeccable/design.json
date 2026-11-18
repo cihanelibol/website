@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-11T18:20:05.470093+00:00",
+  "generatedAt": "2026-11-18T20:48:29.975873+00:00",
   "title": "Gri Akvaryum tasarım sistemi",
   "extensions": {
     "colorMeta": {
@@ -104,6 +104,13 @@
       "Eksik ürün fotoğrafını uydurma",
       "Hazır olmayan ödeme yöntemini vaat etme",
       "Uyarıları gizlemek için genel detector dışlaması ekleme"
+    ],
+    "rules": [
+      {
+        "name": "Payment receipts",
+        "body": "Show persisted payment and fulfilment states separately. Unavailable payment disables checkout. Receipt summaries use the existing store palette and Inter type system.",
+        "section": "components"
+      }
     ]
   }
 }

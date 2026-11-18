@@ -163,11 +163,13 @@ describe("authorization and MFA", () => {
     await markOrderSubmission(order.id, "unknown");
     await expect(updateOrderStatus(order.id, "onaylandi")).rejects.toThrow();
     await reconcileOrder(order.id, "external-order-123", "Verified external provider record");
-    for (const status of ["onaylandi", "hazirlaniyor", "kargoda", "teslim-edildi"] as const) await updateOrderStatus(order.id, status);
+    await expect(updateOrderStatus(order.id, "onaylandi")).rejects.toThrow("ödeme");
     expect((await getAllOrders())[0].paymentStatus).toBe("beklemede");
     await expect(recordManualPayment(order.id, 1, "bank-123", "Verified bank statement record")).rejects.toThrow();
     await recordManualPayment(order.id, 10, "bank-123", "Verified bank statement record");
     await expect(recordManualPayment(order.id, 10, "bank-123", "Verified bank statement record")).rejects.toThrow();
+    expect((await getAllOrders())[0].paymentStatus).toBe("odendi");
+    for (const status of ["hazirlaniyor", "kargoda", "teslim-edildi"] as const) await updateOrderStatus(order.id, status, { cargo: { firma: "Test", takipNo: "TEST-123" } });
     expect((await getAllOrders())[0].paymentStatus).toBe("odendi");
     expect((await getOrdersByUser(a.id))[0]).not.toHaveProperty("paymentEvidence");
     await updateJson<User[], void>("users.json", [], users => { users[0].sessions![0].mfaAt = Date.now() - 6 * 60_000; return { value: users, result: undefined }; });

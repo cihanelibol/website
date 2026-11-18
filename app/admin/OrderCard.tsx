@@ -9,7 +9,7 @@ import {
   type OrderRecord,
   type OrderStatus,
 } from "@/lib/order-types";
-import { reconcileAction, updateOrderStatusAction } from "./actions";
+import { checkPaymentAction, reconcileAction, updateOrderStatusAction } from "./actions";
 import { GROUP_HINTS, GROUP_LABELS, orderGroup, type OrderGroup } from "./order-groups";
 
 function formatTL(value: number): string {
@@ -56,7 +56,7 @@ type Panel = null | "status" | "submission" | "payment";
 export default function OrderCard({ order }: { order: OrderRecord }) {
   const currentStatus: OrderStatus = order.status ?? "yeni";
   const group = orderGroup(order);
-  const allowed = group === "kart-bekliyor" ? (["iptal"] as OrderStatus[]) : ORDER_TRANSITIONS[currentStatus];
+  const allowed = ORDER_TRANSITIONS[currentStatus].filter(s => s === "iptal" || (order.paymentStatus === "odendi" && !order.paymentSandbox));
   const next = allowed.find((s) => s !== "iptal");
   const blocked = group === "kontrol";
 
@@ -117,7 +117,7 @@ export default function OrderCard({ order }: { order: OrderRecord }) {
     order.paymentStatus === "odendi"
       ? { text: order.paymentMethod === "iyzico" ? "Kartla ödendi" : "Ödendi", cls: "bg-teal-500/20 text-teal-300" }
       : group === "kart-bekliyor"
-        ? { text: "Kart ödemesi yok", cls: "bg-slate-500/20 text-slate-300" }
+        ? { text: "Ödeme doğrulanmadı", cls: "bg-slate-500/20 text-slate-300" }
         : { text: "Ödeme bekleniyor", cls: "bg-orange-500/20 text-orange-300" };
 
   const itemCount = order.items.reduce((sum, i) => sum + i.qty, 0);
@@ -181,7 +181,11 @@ export default function OrderCard({ order }: { order: OrderRecord }) {
 
       {/* Hızlı aksiyonlar */}
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        {group === "kontrol" && (
+        {order.paymentMethod === "iyzico" && order.paymentStatus !== "odendi" && <button type="button" className={secondaryButton} disabled={pending} onClick={() => startTransition(async () => {
+          const result = await checkPaymentAction(order.id);
+          setFeedback({ ok: Boolean(result.ok), message: result.error ?? "Ödeme durumu güncellendi." });
+        })}>{pending ? "Kontrol ediliyor…" : "Ödeme sonucunu kontrol et"}</button>}
+        {group === "kontrol" && order.submission && order.submission !== "sent" && (
           <button type="button" className={primaryButton} onClick={() => { setFeedback(null); setPanel(panel === "submission" ? null : "submission"); }}>
             EasyTrade&apos;de gördüm, onayla
           </button>

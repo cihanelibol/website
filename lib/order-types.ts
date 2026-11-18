@@ -50,7 +50,9 @@ export type OrderRecord = {
   shippingFee?: number;
   /** "iyzico": kartla ödeme (ödeme sayfası); "iyzico-bekliyor": ödemesiz mağaza onaylı sipariş (havale/elden) */
   paymentMethod: "iyzico" | "iyzico-bekliyor";
-  paymentStatus: "odendi" | "beklemede";
+  paymentStatus: "odendi" | "beklemede" | "basarisiz" | "kontrol";
+  /** Sandbox receipts never enter fulfilment. */
+  paymentSandbox?: boolean;
   submission?: "pending" | "sent" | "unknown";
   providerReference?: string;
   paymentEvidence?: { actor: string; at: string; reference: string; note: string };

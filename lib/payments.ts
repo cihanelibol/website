@@ -1,5 +1,5 @@
 import "server-only";
-import { createHmac, randomBytes } from "node:crypto";
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { SITE_URL } from "./site";
 
 // Ödeme altyapısı — iyzico Checkout Form (ortak ödeme sayfası).
@@ -8,12 +8,13 @@ import { SITE_URL } from "./site";
 // başlar (→ https://sandbox-api.iyzipay.com), canlı anahtarlar başlamaz (→ https://api.iyzipay.com).
 // IYZICO_BASE_URL verilirse anahtarla uyuşmak zorundadır; uyuşmazsa ödeme kapalı kalır
 // (aksi halde iyzico "api bilgileri bulunamadı" / 1001 döner).
-// Anahtarlar tanımlı değilse sepet "mağaza onaylı sipariş" (ödemesiz) modunda kalır.
+// Anahtarlar tanımlı değilse sipariş gönderimi kapalıdır.
 // Kart bilgisi hiçbir zaman bu siteye gelmez; ödeme iyzico sayfasında alınır ve
 // sonuç callback'te iyzico'dan sunucu tarafında yeniden sorgulanarak doğrulanır.
 
 const SANDBOX_URL = "https://sandbox-api.iyzipay.com";
 const LIVE_URL = "https://api.iyzipay.com";
+export class PaymentStartRejected extends Error {}
 
 /** Vercel'e yapıştırırken gelen boşluk / satır sonu da 1001 hatası üretir; kırpılır. */
 function keys(): { apiKey: string; secret: string } | null {
@@ -49,11 +50,11 @@ export function paymentIsSandbox(): boolean {
 /**
  * Bu ziyaretçi kartla ödeyebilir mi? Sandbox modunda test kartları gerçek para çekmeden
  * "ödendi" sonucu üretir; bu yüzden sandbox yalnız yöneticilere açılır, müşteriler
- * ödemesiz sipariş akışında kalır. Ortam çözümlenemiyorsa (uyuşmazlık) kapalıdır.
+ * ödeme yapamaz. Üretimde sandbox kapalıdır. Ortam çözümlenemiyorsa kapalıdır.
  */
 export function cardPaymentAvailable(isAdmin: boolean): boolean {
   const env = resolveEnv();
-  return env.ok && (!env.sandbox || isAdmin);
+  return env.ok && (!env.sandbox || (isAdmin && process.env.VERCEL_ENV !== "production"));
 }
 
 /** Yönetici paneli için: yapılandırma hatası varsa açıklaması, yoksa null. */
@@ -92,6 +93,7 @@ async function iyzicoRequest<T>(path: string, body: Record<string, unknown>): Pr
     signal: AbortSignal.timeout(15_000),
   });
   const text = await res.text();
+  if (!res.ok) throw new Error(`iyzico HTTP ${res.status}`);
   if (text.length > 512_000) throw new Error("iyzico yanıtı çok büyük");
   try { return JSON.parse(text) as T; }
   catch { throw new Error(`iyzico yanıtı okunamadı (${res.status})`); }
@@ -130,7 +132,7 @@ export type CheckoutOrder = {
 };
 
 /** Ortak ödeme sayfasını başlatır; dönen URL'ye müşteri yönlendirilir. */
-export async function initiateIyzicoCheckout(order: CheckoutOrder): Promise<{ token: string; paymentPageUrl: string }> {
+export async function initiateIyzicoCheckout(order: CheckoutOrder): Promise<{ token: string; paymentPageUrl: string; expiresIn: number }> {
   // iyzico sepetinde adet yoktur: her satır = birim fiyat × adet. Kargo ayrı satırdır.
   const basketItems = order.items.map(i => ({
     id: String(i.id),
@@ -145,7 +147,7 @@ export async function initiateIyzicoCheckout(order: CheckoutOrder): Promise<{ to
 
   const { name, surname } = splitName(order.customerName);
   const address = { contactName: order.customerName.slice(0, 100), city: order.city, country: "Turkey", address: order.address.slice(0, 500), zipCode: order.postalCode || undefined };
-  const result = await iyzicoRequest<{ status: string; errorMessage?: string; token?: string; paymentPageUrl?: string }>(
+  const result = await iyzicoRequest<{ status: string; errorMessage?: string; token?: string; paymentPageUrl?: string; tokenExpireTime?: number; conversationId?: string; signature?: string }>(
     "/payment/iyzipos/checkoutform/initialize/auth/ecom",
     {
       locale: "tr",
@@ -156,7 +158,7 @@ export async function initiateIyzicoCheckout(order: CheckoutOrder): Promise<{ to
       basketId: order.orderId,
       paymentGroup: "PRODUCT",
       callbackUrl: `${appOrigin()}/api/odeme/iyzico`,
-      enabledInstallments: [1, 2, 3, 6, 9],
+      enabledInstallments: [1],
       buyer: {
         id: order.userId ?? `misafir-${order.orderId}`,
         name, surname,
@@ -175,9 +177,12 @@ export async function initiateIyzicoCheckout(order: CheckoutOrder): Promise<{ to
       basketItems,
     },
   );
-  if (result.status !== "success" || !result.token || !result.paymentPageUrl) throw new Error(`iyzico ödeme başlatılamadı: ${result.errorMessage ?? "bilinmeyen hata"}`);
+  if (result.status === "failure") throw new PaymentStartRejected("Ödeme sayfası oluşturulamadı. Lütfen tekrar deneyin.");
+  if (result.status !== "success" || !result.token || !result.paymentPageUrl) throw new Error("iyzico ödeme başlatma yanıtı eksik");
+  if (result.conversationId !== order.orderId) throw new Error("iyzico işlem kimliği eşleşmedi");
+  verifyResponseSignature([result.conversationId, result.token], result.signature);
   if (!/^https:\/\/([a-z0-9-]+\.)*iyzipay\.com\//.test(result.paymentPageUrl)) throw new Error("iyzico ödeme adresi beklenmedik");
-  return { token: result.token, paymentPageUrl: result.paymentPageUrl };
+  return { token: result.token, paymentPageUrl: result.paymentPageUrl, expiresIn: result.tokenExpireTime ?? 1800 };
 }
 
 export type IyzicoResult = {
@@ -186,6 +191,9 @@ export type IyzicoResult = {
   fraudStatus?: number;
   paymentId?: string;
   paidPrice?: number;
+  price?: number;
+  token?: string;
+  signature?: string;
   currency?: string;
   basketId?: string;
   conversationId?: string;
@@ -194,5 +202,16 @@ export type IyzicoResult = {
 
 /** Callback'ten gelen token'ı iyzico'ya sorar; tarayıcıdan gelen hiçbir alana güvenilmez. */
 export async function retrieveIyzicoCheckout(token: string): Promise<IyzicoResult> {
-  return iyzicoRequest<IyzicoResult>("/payment/iyzipos/checkoutform/auth/ecom/detail", { locale: "tr", token });
+  const result = await iyzicoRequest<IyzicoResult>("/payment/iyzipos/checkoutform/auth/ecom/detail", { locale: "tr", token });
+  if (result.status === "success") {
+    if (result.token !== token) throw new Error("iyzico token eşleşmedi");
+    verifyResponseSignature([result.paymentStatus, result.paymentId, result.currency, result.basketId, result.conversationId, result.paidPrice === undefined ? undefined : Number(result.paidPrice), result.price === undefined ? undefined : Number(result.price), result.token], result.signature);
+  }
+  return result;
+}
+
+function verifyResponseSignature(parts: (string | number | undefined)[], signature?: string) {
+  if (!signature || !/^[a-f0-9]{64}$/i.test(signature)) throw new Error("iyzico yanıt imzası eksik");
+  const expected = createHmac("sha256", keys()!.secret).update(parts.map(p => p ?? "").join(":" )).digest();
+  if (!timingSafeEqual(Buffer.from(signature, "hex"), expected)) throw new Error("iyzico yanıt imzası geçersiz");
 }

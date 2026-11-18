@@ -28,6 +28,8 @@ export async function dispatchOrderNotifications(orderId?: string, limit = 10) {
         if (orderId && order.id !== orderId) continue;
         for (const n of order.notifications ?? []) {
           if (n.state !== "pending" || (n.leaseUntil ?? 0) > now || n.nextAttempt > now) continue;
+          // Existing unpaid records may already have a confirmation in the old outbox.
+          if (n.id === `${order.id}/received` && (order.paymentStatus !== "odendi" || order.paymentSandbox || order.status === "iptal" || order.submission !== "sent")) continue;
           // Resend deduplication lasts 24h. Never replay an uncertain send beyond 23h.
           if (n.attempts >= 6 || (n.firstAttempt !== undefined && now - n.firstAttempt >= 23 * 3600_000)) { n.state = "failed"; continue; }
           n.firstAttempt ??= now; n.from ??= process.env.MAIL_FROM!;

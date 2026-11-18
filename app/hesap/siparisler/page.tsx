@@ -4,10 +4,10 @@ import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth";
 import {
   getOrdersByUser,
-  ORDER_STATUS_LABELS,
   type OrderStatus,
 } from "@/lib/orders";
 import { formatPrice } from "@/lib/easytrade";
+import { customerOrderLabel, orderView } from "@/lib/order-presentation";
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
   yeni: "bg-cyan-500/20 text-cyan-300",
@@ -61,7 +61,7 @@ export default async function SiparislerPage() {
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_COLORS[order.status ?? "yeni"]}`}
                   >
-                    {ORDER_STATUS_LABELS[order.status ?? "yeni"]}
+                    {customerOrderLabel(order)}
                   </span>
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-semibold ${
@@ -72,7 +72,7 @@ export default async function SiparislerPage() {
                   >
                     {order.paymentStatus === "odendi"
                       ? "Ödendi"
-                      : "Ödeme Bekleniyor"}
+                      : orderView(order).title}
                   </span>
                 </div>
               </div>
@@ -106,6 +106,7 @@ export default async function SiparislerPage() {
               </ul>
 
               {order.shippingFee !== undefined && <p className="mt-2 text-xs text-muted">Kargo: {order.shippingFee === 0 ? "Ücretsiz" : formatPrice(order.shippingFee)} (toplama dahil)</p>}
+              <Link href={`/sepet/sonuc?siparis=${order.id}`} className="mt-3 inline-block text-sm font-semibold underline">Sipariş detayları ve ödeme durumu</Link>
 
               <div className="mt-3 flex items-center justify-between border-t border-cyan-400/10 pt-3">
                 <span className="text-xs text-muted">{order.addressText}</span>

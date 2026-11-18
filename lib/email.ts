@@ -1,5 +1,6 @@
 import "server-only";
 import { appOrigin } from "./security";
+import { orderTrackingLink } from "./order-access";
 import { escapeHtml as esc } from "./email-text";
 import { boundedJson, object } from "./http";
 // Resend ile işlem e-postaları (hoş geldin, sipariş onayı, kargo/durum bildirimi).
@@ -79,7 +80,7 @@ export async function sendEmail(opts: EmailMessage, delivery?: { key: string; fr
 function layout(title: string, body: string): string {
   return `<!DOCTYPE html>
 <html lang="tr">
-<body style="margin:0;padding:0;background:#04101c;font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;">
+<body style="margin:0;padding:0;background:#04101c;font-family:Inter,'Segoe UI',system-ui,sans-serif;">
   <div style="max-width:560px;margin:0 auto;padding:32px 20px;">
     <div style="text-align:center;padding-bottom:24px;">
       <span style="font-size:22px;font-weight:800;color:#ffffff;">Gri<span style="color:#22d3ee;">Akvaryum</span></span>
@@ -139,15 +140,17 @@ export async function sendWelcomeEmail(name: string, email: string): Promise<voi
 export function orderReceivedMessage(order: OrderRecord): EmailMessage {
   return {
     to: order.email,
-    subject: `Siparişiniz Alındı — ${order.id}`,
+    subject: `Siparişiniz onaylandı — ${order.id}`,
     html: layout(
-      "Siparişiniz Alındı!",
+      "Ödemeniz alındı, siparişiniz onaylandı",
       p(`Sayın ${esc(order.customerName)},`) +
         p(
           `<strong style="color:#ffffff;">${order.id}</strong> numaralı siparişiniz başarıyla oluşturuldu. En kısa sürede hazırlanıp durum güncellemeleri bu adrese iletilecek.`
         ) +
         orderTable(order) +
-        p(`<strong style="color:#ffffff;">Teslimat adresi:</strong> ${esc(order.addressText)}`)
+        p(`<strong style="color:#ffffff;">Teslimat adresi:</strong> ${esc(order.addressText)}`) +
+        `<a href="${esc(appOrigin() + orderTrackingLink(order.id))}">Siparişimi takip et</a>` +
+        p("Bu bağlantı sipariş bilgilerinize özel erişim sağlar ve 30 gün geçerlidir. Başkalarıyla paylaşmayın.")
     ),
   };
 }
@@ -192,7 +195,7 @@ export function orderStatusMessage(
         ) +
         extra +
         (note ? p(`<strong style="color:#ffffff;">Not:</strong> ${esc(note)}`) : "") +
-        orderTable(order)
+        orderTable(order) + `<a href="${esc(appOrigin() + orderTrackingLink(order.id))}">Siparişimi takip et</a>`
     ),
   };
 }

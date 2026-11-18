@@ -1,13 +1,13 @@
 "use client";
 
 // 3 adımlı sipariş akışı: Sepet → Teslimat → Ödeme (iyzico).
-// iyzico API bilgileri bağlanana kadar ödeme adımı "hazırlık modu"nda çalışır.
+// Ödeme doğrulanmadan sipariş onayı gösterilmez.
 
 import AppIcon from "@/components/AppIcon";
 import Image from "next/image";
 import ProductImagePlaceholder from "@/components/ProductImagePlaceholder";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
 import { useCart } from "@/components/cart/CartProvider";
 import type { Address } from "@/lib/addresses";
 import { submitOrderAction } from "./actions";
@@ -31,7 +31,7 @@ type Step = "sepet" | "teslimat" | "odeme";
 const STEPS: { key: Step; label: string }[] = [
   { key: "sepet", label: "Sepet" },
   { key: "teslimat", label: "Teslimat" },
-  { key: "odeme", label: "Ödeme" },
+  { key: "odeme", label: "Özet ve ödeme" },
 ];
 
 export default function SepetClient({
@@ -43,17 +43,16 @@ export default function SepetClient({
   profile?: { name: string; email: string; phone: string };
   paymentReady?: boolean;
 }) {
-  const { items, setQty, remove, clear, totalCount, totalAmount } = useCart();
+  const { items, setQty, remove, totalCount, totalAmount } = useCart();
   const cargoFee = shippingFee(totalAmount);
   const grandTotal = totalWithShipping(totalAmount);
   const [step, setStep] = useState<Step>("sepet");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
+  const [resultUrl, setResultUrl] = useState<string | null>(null);
   const requestId = useRef<string | null>(null);
   const submitting = useRef(false);
-  const successRef = useRef<HTMLDivElement>(null);
-  useEffect(() => { if (done) successRef.current?.focus(); }, [done]);
+
 
   const [form, setForm] = useState({
     customer_name: profile?.name ?? "",
@@ -65,6 +64,19 @@ export default function SepetClient({
     postal_code: "",
     notes: "",
   });
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem("ga_checkout_draft") ?? "null");
+      if (saved?.form && typeof saved.requestId === "string") {
+        requestId.current = saved.requestId;
+        startTransition(() => {
+          setForm(current => Object.fromEntries(Object.entries(current).map(([key, value]) => [key, typeof saved.form[key] === "string" ? saved.form[key] : value])) as typeof current);
+          if (typeof saved.resultUrl === "string" && saved.resultUrl.startsWith("/sepet/sonuc?")) setResultUrl(saved.resultUrl);
+        });
+      }
+    } catch { /* Storage is optional; entered values stay in memory. */ }
+  }, []);
+
   const [selectedAddress, setSelectedAddress] = useState<string>(
     addresses.length > 0 ? addresses[0].id : "yeni",
   );
@@ -105,7 +117,7 @@ export default function SepetClient({
     customer_phone:
       phoneDigits.length >= 10 ? null : "Geçerli bir telefon girin (05XX...).",
     address:
-      form.address.trim().length >= 5 ? null : "Teslimat adresini girin.",
+      form.address.trim().length >= 10 ? null : "Teslimat adresini girin.",
     city: form.city.trim().length >= 2 ? null : "Şehir girin.",
   };
   const teslimatValid = !Object.values(fieldErrors).some(Boolean);
@@ -150,7 +162,7 @@ export default function SepetClient({
   };
 
   const onPay = async () => {
-    if (submitting.current) return;
+    if (submitting.current || !paymentReady) return;
     if (!legalAccepted) {
       setError(
         "Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi onaylanmadan sipariş verilemez.",
@@ -162,6 +174,7 @@ export default function SepetClient({
     setError(null);
     requestId.current ??= crypto.randomUUID();
     try {
+    try { sessionStorage.setItem("ga_checkout_draft", JSON.stringify({ form, requestId: requestId.current, resultUrl })); } catch { /* optional */ }
     const result = await submitOrderAction({
       requestId: requestId.current,
       ...form,
@@ -173,14 +186,17 @@ export default function SepetClient({
         price: i.price,
       })),
     });
-    if ("paymentPageUrl" in result && result.paymentPageUrl) {
+    if (result.resultUrl) {
+      setResultUrl(result.resultUrl);
+      try { sessionStorage.setItem("ga_checkout_draft", JSON.stringify({ form, requestId: requestId.current, resultUrl: result.resultUrl })); } catch { /* optional */ }
+    }
+    if (result.paymentPageUrl) {
       // iyzico ödeme sayfasına yönlendir
       window.location.href = result.paymentPageUrl;
       return;
     }
-    if (result.ok) {
-      clear();
-      setDone(true);
+    if (result.ok && result.resultUrl) {
+      window.location.href = result.resultUrl;
     } else {
       setError(result.error ?? "Bir sorun oluştu.");
     }
@@ -191,35 +207,6 @@ export default function SepetClient({
       setPending(false);
     }
   };
-
-  if (done) {
-    return (
-      <div ref={successRef} tabIndex={-1} role="status" className="flex min-h-[55vh] flex-col items-center justify-center gap-4 text-center">
-        <span className="text-6xl"><AppIcon name="circle-check" /></span>
-        <h2 className="font-display text-2xl font-bold">Siparişiniz Alındı!</h2>
-        <p className="max-w-md text-sm leading-relaxed text-muted">
-          Siparişiniz mağazamıza iletildi. En kısa sürede sizinle iletişime
-          geçeceğiz. Teşekkür ederiz!
-        </p>
-        <div className="flex gap-3">
-          <Link
-            href="/urunler"
-            className="mt-2 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 px-6 py-3 text-sm font-semibold text-slate-950 transition-transform hover:scale-105"
-          >
-            Alışverişe Devam Et
-          </Link>
-          {profile && (
-            <Link
-              href="/hesap/siparisler"
-              className="glass mt-2 rounded-xl px-6 py-3 text-sm font-semibold transition-colors hover:border-cyan-400/40"
-            >
-              Siparişlerim
-            </Link>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   if (items.length === 0) {
     return (
@@ -643,7 +630,7 @@ export default function SepetClient({
         {/* ADIM 3 — Ödeme (iyzico) */}
         {step === "odeme" && (
           <div className="space-y-4">
-            <h2 className="font-display font-bold">Ödeme</h2>
+            <h2 className="font-display font-bold">Sipariş özeti ve ödeme</h2>
 
             {/* Sipariş özeti */}
             <div className="space-y-1.5 rounded-xl border border-cyan-400/15 bg-cyan-400/5 p-4 text-sm">
@@ -653,9 +640,7 @@ export default function SepetClient({
               </div>
               <div className="flex justify-between text-muted">
                 <span>Teslimat</span>
-                <span className="max-w-[12rem] truncate text-right">
-                  {form.city || "—"}
-                </span>
+                <span className="max-w-[15rem] text-right">{form.customer_name}<br />{form.address}<br />{form.district}, {form.city} {form.postal_code}</span>
               </div>
               <div className="flex justify-between border-t border-cyan-400/10 pt-2 font-display font-bold">
                 <span>Kargo</span>
@@ -668,15 +653,17 @@ export default function SepetClient({
             </div>
 
             <section className="store-order-explanation" aria-label="Sipariş ve ödeme bilgisi">
-              <h3 className="text-sm font-bold">{paymentReady ? "Kart ile ödeme" : "Mağaza onaylı sipariş"}</h3>
+              <h3 className="text-sm font-bold">{paymentReady ? "Güvenli kart ödemesi" : "Ödeme şu anda kullanılamıyor"}</h3>
               <p className="mt-2 text-sm text-muted">
                 {paymentReady
-                  ? "Ödeme için iyzico sayfasına yönlendirileceksiniz. Kart bilgilerinizi bu sitede girmeyin."
-                  : "Bu adımda ödeme alınmaz. Sipariş talebiniz mağazamıza iletilir; ödeme yöntemi ve teslimat ayrıntıları sizinle görüşülür."}
+                  ? "Kart bilgilerinizi girmek için iyzico güvenli ödeme sayfasına yönlendirileceksiniz. Siparişiniz ödeme doğrulandıktan sonra onaylanır."
+                  : "Şu anda ödeme alınamıyor. Sipariş gönderimi kapalı; sepetiniz korunuyor. Lütfen daha sonra tekrar deneyin."}
               </p>
               {paymentReady && <IyzicoCheckoutNote className="mt-3" />}
               <p className="mt-2 text-sm text-muted">{SHIPPING.summary} {SHIPPING.dispatch} Gösterilen toplam kargo dahil tutardır.</p>
             </section>
+
+            {resultUrl && <p className="store-order-explanation text-sm"><Link href={resultUrl} className="font-semibold underline">Mevcut siparişimin durumunu kontrol et</Link><br />Ödemeye başladıysanız yeniden sipariş oluşturmadan bu bağlantıyı kullanın.</p>}
 
             {/* Zorunlu sözleşme onayı */}
             <label className="flex cursor-pointer items-start gap-2.5 text-xs leading-relaxed text-muted">
@@ -711,14 +698,14 @@ export default function SepetClient({
 
             <button
               onClick={onPay}
-              disabled={pending || !legalAccepted}
+              disabled={pending || !legalAccepted || !paymentReady}
               className="glow w-full rounded-2xl bg-gradient-to-r from-cyan-500 to-teal-500 px-6 py-3.5 font-semibold text-slate-950 transition-transform hover:scale-[1.02] disabled:opacity-50"
             >
               {pending
                 ? "İşleniyor..."
                 : paymentReady
                   ? <><AppIcon name="lock" /> {formatTL(grandTotal)} Öde</>
-                  : "Sipariş talebini gönder"}
+                  : "Ödeme kullanılamıyor"}
             </button>
           </div>
         )}

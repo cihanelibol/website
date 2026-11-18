@@ -1,6 +1,6 @@
 import "server-only";
 import { postOrder, type OrderPayload } from "./easytrade";
-import { markOrderSubmission } from "./orders";
+import { claimOrderForward, markOrderSubmission } from "./orders";
 import { dispatchOrderNotifications } from "./order-outbox";
 import { audit } from "./security";
 
@@ -10,6 +10,7 @@ import { audit } from "./security";
  * tekrar gönderim YAPILMAZ (çift sipariş riski).
  */
 export async function forwardOrder(orderId: string, payload: OrderPayload, actor?: string): Promise<boolean> {
+  if (!await claimOrderForward(orderId)) return false;
   try {
     const receipt = await postOrder(payload);
     await markOrderSubmission(orderId, "sent", receipt);

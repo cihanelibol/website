@@ -5,7 +5,7 @@ export type OrderGroup = "kontrol" | "tahsilat" | "hazirlanacak" | "kargoda" | "
 
 export const GROUP_LABELS: Record<OrderGroup, string> = {
   kontrol: "Kontrol bekliyor",
-  tahsilat: "Ödeme bekleniyor",
+  tahsilat: "Eski ödemesiz sipariş",
   hazirlanacak: "Hazırlanacak",
   kargoda: "Kargoda",
   tamamlandi: "Teslim edildi",
@@ -14,22 +14,23 @@ export const GROUP_LABELS: Record<OrderGroup, string> = {
 };
 
 export const GROUP_HINTS: Record<OrderGroup, string> = {
-  kontrol: "Sipariş EasyTrade'e iletilirken yanıt alınamadı. EasyTrade panelinde siparişin oluşup oluşmadığına bakıp onaylayın.",
+  kontrol: "Ödeme veya sipariş aktarımı doğrulama bekliyor. Önce iyzico ödeme kaydını, ardından EasyTrade sipariş kaydını kontrol edin. Belirsiz işlemi yeniden göndermeyin.",
   tahsilat: "Kart ödemesi olmadan gelen sipariş. Havale/elden ödemeyi aldığınızda kaydedin.",
-  hazirlanacak: "Ödemesi tamam veya mağaza onaylı; hazırlayıp kargoya verin.",
+  hazirlanacak: "Ödemesi doğrulandı ve sipariş aktarımı tamamlandı; hazırlığa alınabilir.",
   kargoda: "Kargoya verildi, teslim bekleniyor.",
   tamamlandi: "Teslim edilmiş siparişler.",
-  "kart-bekliyor": "Müşteri iyzico ödeme sayfasını açtı ama ödemeyi bitirmedi. Para çekilmedi; işlem gerekmez.",
+  "kart-bekliyor": "Kart ödemesi henüz doğrulanmadı. Hazırlığa almayın; tahsilat durumunu iyzico kaydından kontrol edin.",
   iptal: "İptal edilmiş siparişler.",
 };
 
 export function orderGroup(o: OrderRecord): OrderGroup {
   const status = o.status ?? "yeni";
   if (status === "iptal") return "iptal";
-  if (o.paymentMethod === "iyzico" && o.paymentStatus === "beklemede" && !o.submission) return "kart-bekliyor";
+  if (o.paymentSandbox || o.paymentStatus === "kontrol") return "kontrol";
+  if (o.paymentMethod === "iyzico" && o.paymentStatus !== "odendi" && !o.submission) return "kart-bekliyor";
   if (o.submission && o.submission !== "sent") return "kontrol";
+  if (o.paymentStatus !== "odendi") return "tahsilat";
   if (status === "teslim-edildi") return "tamamlandi";
   if (status === "kargoda") return "kargoda";
-  if (o.paymentStatus === "beklemede") return "tahsilat";
   return "hazirlanacak";
 }
