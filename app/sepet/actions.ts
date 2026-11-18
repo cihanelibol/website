@@ -63,6 +63,10 @@ export async function submitOrderAction(input: CheckoutInput): Promise<OrderStat
     return { ok: true, orderId: reservedId };
   } catch (error) {
     if (reservedId) return { error: `Sipariş sonucu kontrol bekliyor. Yeni sipariş göndermeden ${reservedId} numarasıyla mağazayla iletişime geçin.` };
+    const message = error instanceof Error ? error.message : String(error);
+    if (!(error instanceof InputError)) console.error(JSON.stringify({ stream: "checkout", event: "checkout.failed", message: message.slice(0, 300) }));
+    // iyzico hata metni (ör. "api bilgileri bulunamadı") gizli bilgi içermez; teşhis için yöneticiye gösterilir.
+    if (/^iyzico|sepet toplamı/i.test(message) && await getAdminUser().catch(() => undefined)) return { error: `Yönetici teşhisi: ${message}` };
     return { error: safeError(error) };
   }
 }
