@@ -1,9 +1,9 @@
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { getSessionUser, getUserById } from "@/lib/auth";
+import { getAdminUser, getSessionUser, getUserById } from "@/lib/auth";
 import { getAddresses, type Address } from "@/lib/addresses";
-import { paymentConfigured } from "@/lib/payments";
+import { cardPaymentAvailable } from "@/lib/payments";
 import SepetClient from "./SepetClient";
 
 export const metadata = {
@@ -47,7 +47,7 @@ export default async function SepetPage() {
         <SepetClient
           addresses={addresses}
           profile={profile}
-          paymentReady={paymentConfigured()}
+          paymentReady={cardPaymentAvailable(Boolean(await getAdminUser()))}
         />
       </main>
       <Footer />

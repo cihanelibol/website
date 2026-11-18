@@ -1,9 +1,11 @@
-﻿"use server";
+"use server";
 import { createHash } from "node:crypto";
-import { getAllProducts, postOrder, type OrderPayload } from "@/lib/easytrade";
-import { getSessionUser } from "@/lib/auth";
-import { markOrderSubmission, reserveOrder } from "@/lib/orders";
-import { dispatchOrderNotifications } from "@/lib/order-outbox";
+import { headers } from "next/headers";
+import { getAllProducts, type OrderPayload } from "@/lib/easytrade";
+import { getAdminUser, getSessionUser } from "@/lib/auth";
+import { attachPaymentToken, reserveOrder } from "@/lib/orders";
+import { forwardOrder } from "@/lib/order-forward";
+import { cardPaymentAvailable, initiateIyzicoCheckout } from "@/lib/payments";
 import { priceItems } from "@/lib/checkout";
 import { shippingFee, totalWithShipping } from "@/lib/shipping";
 import { audit, emailField, guardRate, InputError, safeError, textField, tokenHash } from "@/lib/security";
@@ -31,24 +33,36 @@ export async function submitOrderAction(input: CheckoutInput): Promise<OrderStat
     const addressText = `${address.address}, ${address.district}, ${address.city} ${address.postal_code}`;
     // EasyTrade's supported total is the merchandise total. Carry shipping in the
     // merchant notes, while our order/payment total includes the confirmed charge.
-    const payload: OrderPayload = { customer_name: name, customer_email: email, customer_phone: phone, shipping_address: address, billing_address: address, notes: `${notes}\n[Kargo: ${cargoFee.toFixed(2)} TL; kargo dahil toplam: ${grandTotal.toFixed(2)} TL.]\n[Sözleşme onaylandı; ödeme mağaza tarafından ayrıca doğrulanır.]`, items: items.map(i => ({ product_id: i.id, variation_id: null, quantity: i.qty, unit_price: i.price, total_price: Math.round(i.price * 100) * i.qty / 100 })), total_amount: total };
+    const cardPayment = cardPaymentAvailable(Boolean(await getAdminUser()));
+    const payload: OrderPayload = { customer_name: name, customer_email: email, customer_phone: phone, shipping_address: address, billing_address: address, notes: `${notes}\n[Kargo: ${cargoFee.toFixed(2)} TL; kargo dahil toplam: ${grandTotal.toFixed(2)} TL.]\n[Sözleşme onaylandı; ${cardPayment ? "ödeme iyzico ile kartla alındı" : "ödeme mağaza tarafından ayrıca doğrulanır"}.]`, items: items.map(i => ({ product_id: i.id, variation_id: null, quantity: i.qty, unit_price: i.price, total_price: Math.round(i.price * 100) * i.qty / 100 })), total_amount: total };
     const requestKey = tokenHash(`checkout:${session?.uid ?? "guest"}:${requestId}`);
     const fingerprint = createHash("sha256").update(JSON.stringify(payload)).digest("hex");
-    const reserved = await reserveOrder({ userId: session?.uid ?? null, customerName: name, email, phone, addressText, items, total: grandTotal, shippingFee: cargoFee, paymentMethod: "iyzico-bekliyor", paymentStatus: "beklemede" }, requestKey, fingerprint);
+    const orderInput = { userId: session?.uid ?? null, customerName: name, email, phone, addressText, items, total: grandTotal, shippingFee: cargoFee, paymentMethod: cardPayment ? "iyzico" as const : "iyzico-bekliyor" as const, paymentStatus: "beklemede" as const };
+
+    if (cardPayment) {
+      // Kartla ödeme: sipariş kaydedilir, EasyTrade'e ancak iyzico ödemesi doğrulanınca gider.
+      const reserved = await reserveOrder(orderInput, requestKey, fingerprint, payload);
+      if (reserved.submission !== "awaiting-payment") {
+        return reserved.order.paymentStatus === "odendi" ? { ok: true, orderId: reserved.order.id } : { error: `Siparişiniz işleniyor veya kontrol bekliyor. Tekrar sipariş oluşturmayın; ${reserved.order.id} numarasıyla mağazayla iletişime geçin.` };
+      }
+      const orderId = reserved.order.id;
+      const h = await headers();
+      const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim() || h.get("x-real-ip") || "85.34.78.112";
+      const checkout = await initiateIyzicoCheckout({ orderId, userId: session?.uid ?? null, total: grandTotal, shippingFee: cargoFee, customerName: name, email, phone, address: `${address.address}, ${address.district}`, city: address.city, postalCode: address.postal_code, ip, items });
+      await attachPaymentToken(orderId, checkout.token);
+      await audit("order.payment_started", session?.uid, orderId);
+      return { ok: true, orderId, paymentPageUrl: checkout.paymentPageUrl };
+    }
+
+    const reserved = await reserveOrder(orderInput, requestKey, fingerprint);
     if (!reserved.created) return reserved.submission === "sent" ? { ok: true, orderId: reserved.order.id } : { error: `Siparişiniz işleniyor veya kontrol bekliyor. Tekrar sipariş oluşturmayın; ${reserved.order.id} numarasıyla mağazayla iletişime geçin.` };
     reservedId = reserved.order.id;
     payload.notes += `\n[Mağaza sipariş kimliği: ${reservedId}]`;
-    const receipt = await postOrder(payload);
-    await markOrderSubmission(reservedId, "sent", receipt);
-    await audit("order.submitted", session?.uid, reservedId);
-    await dispatchOrderNotifications(reservedId, 2).catch(() => audit("mail.dispatch_failed", undefined, reservedId, "error"));
+    const sent = await forwardOrder(reservedId, payload, session?.uid);
+    if (!sent) return { error: `Sipariş sonucu kontrol bekliyor. Yeni sipariş göndermeden ${reservedId} numarasıyla mağazayla iletişime geçin.` };
     return { ok: true, orderId: reservedId };
   } catch (error) {
-    if (reservedId) {
-      await markOrderSubmission(reservedId, "unknown").catch(() => audit("order.reconcile_required", undefined, reservedId, "error"));
-      await audit("order.reconcile_required", undefined, reservedId, "error");
-      return { error: `Sipariş sonucu kontrol bekliyor. Yeni sipariş göndermeden ${reservedId} numarasıyla mağazayla iletişime geçin.` };
-    }
+    if (reservedId) return { error: `Sipariş sonucu kontrol bekliyor. Yeni sipariş göndermeden ${reservedId} numarasıyla mağazayla iletişime geçin.` };
     return { error: safeError(error) };
   }
 }

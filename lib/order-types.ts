@@ -27,6 +27,16 @@ export const ORDER_STATUS_FLOW: OrderStatus[] = [
   "iptal",
 ];
 
+/** İzin verilen durum geçişleri — sunucu bunu zorlar, panel yalnız bunları önerir. */
+export const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  yeni: ["onaylandi", "iptal"],
+  onaylandi: ["hazirlaniyor", "iptal"],
+  hazirlaniyor: ["kargoda", "iptal"],
+  kargoda: ["teslim-edildi"],
+  "teslim-edildi": [],
+  iptal: [],
+};
+
 export type OrderRecord = {
   id: string;
   userId: string | null; // misafir siparişlerinde null
@@ -38,7 +48,7 @@ export type OrderRecord = {
   total: number;
   /** Included in total. Absent on orders created before shipping was priced here. */
   shippingFee?: number;
-  /** Ödeme yöntemi: iyzico entegrasyonu bağlanana dek "iyzico-bekliyor" */
+  /** "iyzico": kartla ödeme (ödeme sayfası); "iyzico-bekliyor": ödemesiz mağaza onaylı sipariş (havale/elden) */
   paymentMethod: "iyzico" | "iyzico-bekliyor";
   paymentStatus: "odendi" | "beklemede";
   submission?: "pending" | "sent" | "unknown";

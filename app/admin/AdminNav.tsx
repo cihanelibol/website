@@ -5,12 +5,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const tabs = [
-  { href: "/admin/guvenlik", label: "Güvenlik Olayları", icon: "shield" },
-  { href: "/admin/islemler", label: "Uzlaştırma / Tahsilat", icon: "check" },
-  { href: "/admin/yorumlar", label: "Yorum İnceleme", icon: "message" },
-  { href: "/admin", label: "Sipariş Yönetimi", icon: "package" },
-  { href: "/admin/uyeler", label: "Üye Yönetimi", icon: "users" },
-  { href: "/admin/denetim", label: "Denetim Kaydı", icon: "shield" },
+  { href: "/admin", label: "Siparişler", icon: "package" },
+  { href: "/admin/uyeler", label: "Üyeler", icon: "users" },
+  { href: "/admin/yorumlar", label: "Yorumlar", icon: "message" },
+  { href: "/admin/guvenlik", label: "Güvenlik", icon: "shield" },
+  { href: "/admin/denetim", label: "Denetim Kaydı", icon: "file" },
 ];
 
 export default function AdminNav() {

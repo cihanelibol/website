@@ -1,6 +1,7 @@
+import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
-import OperationsForm from "../OperationsForm";
+// Uzlaştırma ve tahsilat artık doğrudan sipariş kartlarında yapılıyor.
 export default async function OperationsPage() {
   await requireAdmin();
-  return <OperationsForm />;
+  redirect("/admin?filtre=kontrol");
 }
